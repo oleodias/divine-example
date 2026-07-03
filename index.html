@@ -134,7 +134,8 @@ table.et{width:100%;border-collapse:collapse}
 <body>
 
 <div class="topbar"><div class="topin">
-  <div class="logo">Divine</div>
+  <div class="logo" id="logoFallback">Divine</div>
+  <img id="logoTop" alt="Divine" style="display:none;height:42px;width:auto">
   <div class="tt">
     <h1>Acompanhamento de Projetos</h1>
     <div class="sub">Divine Chocolates · Pesquisa & Desenvolvimento</div>
@@ -265,7 +266,8 @@ table.et{width:100%;border-collapse:collapse}
 
 <div class="foot">
   <span>Divine Chocolates · P&D — Acompanhamento de Projetos</span>
-  <span class="wm">Divine</span>
+  <span class="wm" id="wmFallback">Divine</span>
+  <img id="logoFoot" alt="Divine" style="display:none;height:34px;width:auto">
 </div>
 <div class="toast" id="toast"></div>
 
@@ -276,9 +278,12 @@ table.et{width:100%;border-collapse:collapse}
 <script>/* Divine Chocolates — exportação do PPTX de acompanhamento de projetos.
    Funciona no navegador (PptxGenJS global) e no Node (require). */
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory();
-  else root.DivineExport = factory();
-})(typeof self !== "undefined" ? self : this, function () {
+  if (typeof module === "object" && module.exports) {
+    let logo = null;
+    try { logo = require("./divine_logo.js"); } catch (e) {}
+    module.exports = factory(logo);
+  } else root.DivineExport = factory(root.DivineLogo || null);
+})(typeof self !== "undefined" ? self : this, function (LOGO) {
 
   const C = {
     CHOC: "3E2419", CHOC2: "5A3A2A", CHOC3: "7A5238", RED: "A83224",
@@ -326,15 +331,22 @@ table.et{width:100%;border-collapse:collapse}
   }
 
   function logo(slide) {
+    // logo oficial embutida quando disponível; senão, marcador provisório
+    if (LOGO && LOGO.WORDMARK) {
+      const lh = 0.54, lw = lh * LOGO.WM_AR;
+      slide.addImage({ data: LOGO.WORDMARK, x: 0.32, y: (0.98 - lh) / 2, w: lw, h: lh });
+      return 0.32 + lw + 0.18;
+    }
     slide.addText("Divine", { shape: "roundRect", rectRadius: 0.13, x: 0.30, y: 0.17, w: 0.62, h: 0.62, fill: { color: C.RED }, line: NOLINE, color: C.GOLDLT, fontSize: 10, bold: true, italic: true, fontFace: SCRIPT, align: "center", valign: "middle", margin: 0 });
+    return 1.08;
   }
 
   function header(slide, eyebrow, title, prioridade, statusGeral) {
     slide.addShape("rect", { x: 0, y: 0, w: 13.333, h: 0.98, fill: { color: C.CHOC }, line: NOLINE });
     slide.addShape("rect", { x: 0, y: 0.98, w: 13.333, h: 0.028, fill: { color: C.GOLD }, line: NOLINE });
-    logo(slide);
-    slide.addText(eyebrow, { x: 1.08, y: 0.155, w: 8.0, h: 0.25, fontSize: 10, bold: true, color: C.GOLDLT, fontFace: FONT, margin: 0 });
-    slide.addText(title, { x: 1.06, y: 0.375, w: 8.0, h: 0.55, fontSize: 25, bold: true, color: C.WHITE, fontFace: FONT, margin: 0 });
+    const txX = logo(slide);
+    slide.addText(eyebrow, { x: txX + 0.02, y: 0.155, w: 8.0, h: 0.25, fontSize: 10, bold: true, color: C.GOLDLT, fontFace: FONT, margin: 0 });
+    slide.addText(title, { x: txX, y: 0.375, w: 8.0, h: 0.55, fontSize: 25, bold: true, color: C.WHITE, fontFace: FONT, margin: 0 });
     if (prioridade) {
       slide.addText("PRIORIDADE", { x: 9.35, y: 0.14, w: 1.55, h: 0.2, fontSize: 8, bold: true, color: C.CREAMTXT, align: "center", fontFace: FONT, margin: 0 });
       slide.addText(prioridade, pillOpts(9.35, 0.40, 1.55, 0.40, C.WHITE, C.CHOC, 11.5));
@@ -359,7 +371,12 @@ table.et{width:100%;border-collapse:collapse}
 
   function footer(slide, legend) {
     slide.addShape("rect", { x: 0, y: 7.18, w: 13.333, h: 0.32, fill: { color: C.CHOC }, line: NOLINE });
-    slide.addText("Divine", { x: 12.15, y: 7.215, w: 0.95, h: 0.26, fontSize: 11, bold: true, italic: true, color: C.GOLDLT, fontFace: SCRIPT, align: "right", margin: 0 });
+    if (LOGO && LOGO.WORDMARK) {
+      const lh = 0.22, lw = lh * LOGO.WM_AR;
+      slide.addImage({ data: LOGO.WORDMARK, x: 12.95 - lw, y: 7.23, w: lw, h: lh });
+    } else {
+      slide.addText("Divine", { x: 12.15, y: 7.215, w: 0.95, h: 0.26, fontSize: 11, bold: true, italic: true, color: C.GOLDLT, fontFace: SCRIPT, align: "right", margin: 0 });
+    }
     if (legend) {
       const items = [[C.G, "Concluído"], [C.A, "Em andamento"], [null, "Não iniciado"], [C.R, "Bloqueado"]];
       let x = 0.38;
@@ -525,8 +542,14 @@ table.et{width:100%;border-collapse:collapse}
     s.addText("Acompanhamento\nde Projetos", { x: 0.92, y: 2.0, w: 11, h: 1.9, fontSize: 45, bold: true, color: C.WHITE, fontFace: FONT, margin: 0, valign: "top" });
     s.addText("Status do portfólio de novos produtos — andamento, pendências e próximos passos, projeto a projeto.", { x: 0.95, y: 4.05, w: 8.6, h: 0.75, fontSize: 15, color: C.CREAMTXT, fontFace: FONT, margin: 0 });
     s.addText("Reunião  ·  " + (ciclo || ""), { shape: "roundRect", rectRadius: 0.26, x: 0.95, y: 5.0, w: 3.3, h: 0.52, fill: { color: C.CHOC }, line: { color: C.GOLD, width: 1.25 }, fontSize: 13, bold: true, color: "F4E6CC", align: "center", valign: "middle", margin: 0, fontFace: FONT });
-    s.addText("Divine", { x: 0.92, y: 6.05, w: 4, h: 0.85, fontSize: 38, bold: true, italic: true, color: C.GOLDLT, fontFace: SCRIPT, margin: 0 });
-    s.addText("C H O C O L A T E   D E   V E R D A D E", { x: 0.98, y: 6.92, w: 5, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0 });
+    if (LOGO && LOGO.WORDMARK) {
+      const lh = 1.0, lw = lh * LOGO.WM_AR;
+      s.addImage({ data: LOGO.WORDMARK, x: 0.92, y: 5.85, w: lw, h: lh });
+      s.addText("C H O C O L A T E   D E   V E R D A D E", { x: 0.98, y: 6.98, w: 5, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0 });
+    } else {
+      s.addText("Divine", { x: 0.92, y: 6.05, w: 4, h: 0.85, fontSize: 38, bold: true, italic: true, color: C.GOLDLT, fontFace: SCRIPT, margin: 0 });
+      s.addText("C H O C O L A T E   D E   V E R D A D E", { x: 0.98, y: 6.92, w: 5, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0 });
+    }
   }
 
   function build(PptxGenJS, state) {
@@ -765,7 +788,16 @@ function toast(msg) {
 }
 
 /* ================= boot ================= */
+function aplicaLogo() {
+  if (typeof DivineLogo === "undefined" || !DivineLogo || !DivineLogo.WORDMARK) return;
+  const top = document.getElementById("logoTop"), foot = document.getElementById("logoFoot");
+  top.src = DivineLogo.WORDMARK; top.style.display = "block";
+  document.getElementById("logoFallback").style.display = "none";
+  foot.src = DivineLogo.FULL || DivineLogo.WORDMARK; foot.style.display = "block";
+  document.getElementById("wmFallback").style.display = "none";
+}
 function renderAll() { renderList(); renderForm(); }
+aplicaLogo();
 renderAll();
 </script>
 </body>
