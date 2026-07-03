@@ -3,252 +3,270 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Editor de Projetos — Divine P&D</title>
+<title>Divine P&D · Acompanhamento de Projetos</title>
 <style>
 :root{
   --choc:#3E2419; --choc2:#5A3A2A; --choc3:#7A5238; --gold:#C9932E; --goldlt:#E0A53A;
-  --cream:#FBF6EA; --cream2:#F4EAD7; --line:#E3D6BF; --ink:#2A1B12; --mute:#9C8C72;
-  --g:#43A047; --gd:#2E7D32; --gb:#E6F1E3;
-  --a:#E0A53A; --ad:#9A6A12; --ab:#FBEFD3;
-  --r:#C0392F; --rd:#B23A2A; --rb:#F7E0DA;
-  --n:#CDBDA4; --nd:#8A7A66; --nb:#F1EADB;
+  --bg:#F4EFE4; --card:#FFFFFF; --cream:#FAF6EC; --cream2:#F4EAD7; --line:#E6DCC6; --line2:#EFE7D4;
+  --ink:#2A1B12; --mute:#9C8C72;
+  --g:#43A047; --gd:#2E7D32; --a:#E0A53A; --ad:#9A6A12; --r:#C0392F; --rd:#B23A2A; --n:#CDBDA4; --nd:#8A7A66;
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,Helvetica,sans-serif}
-body{background:#EFE6D2;color:var(--ink);min-height:100vh}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",-apple-system,"Helvetica Neue",Arial,sans-serif}
+body{background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px}
 
-/* ---------- topo ---------- */
-.topbar{background:linear-gradient(90deg,var(--choc),#4E3020);border-bottom:3px solid var(--gold);
-  padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
-.logo{width:44px;height:44px;border-radius:11px;background:#A83224;display:flex;align-items:center;justify-content:center;
-  color:var(--goldlt);font-style:italic;font-weight:800;font-size:13px;font-family:"Segoe Script",cursive}
-.topbar h1{font-size:17px;color:#fff}
-.topbar .sub{font-size:11.5px;color:#E7D8C2;margin-top:1px}
-.topbar .spacer{margin-left:auto}
-.btn{border:0;border-radius:9px;padding:10px 15px;font-size:13px;font-weight:700;cursor:pointer;
-  color:#fff;background:var(--choc3);transition:filter .15s,transform .08s;white-space:nowrap}
-.btn:hover{filter:brightness(1.12)} .btn:active{transform:scale(.96)}
-.btn.gold{background:var(--goldlt);color:#3a2410}
-.btn.ghost{background:transparent;color:#EBDCC4;border:1px solid #8A6A50}
-.btn.sm{padding:6px 10px;font-size:12px;border-radius:7px}
-.btn.danger{background:transparent;color:#C0897F;border:1px solid #C0897F}
+/* ============ TOPO ============ */
+.topbar{background:var(--choc);border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:50}
+.topin{max-width:1360px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{width:42px;height:42px;border-radius:10px;background:#A83224;display:flex;align-items:center;justify-content:center;
+  color:var(--goldlt);font-style:italic;font-weight:800;font-size:12px;font-family:"Segoe Script",cursive;flex:none}
+.tt h1{font-size:16px;color:#fff;font-weight:700;letter-spacing:.2px}
+.tt .sub{font-size:11px;color:#C9B49A;margin-top:2px;text-transform:uppercase;letter-spacing:1.2px;font-weight:600}
+.spacer{margin-left:auto}
+.btn{border:0;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;
+  transition:filter .15s,transform .08s;white-space:nowrap;letter-spacing:.2px}
+.btn:hover{filter:brightness(1.1)} .btn:active{transform:scale(.97)}
+.btn.primary{background:var(--goldlt);color:#2A1704}
+.btn.ghost{background:transparent;color:#EBDCC4;border:1px solid #7A5F49}
+.btn.soft{background:var(--cream2);color:var(--choc2);border:1px solid var(--line)}
+.btn.soft:hover{filter:none;background:#EEE2C8}
+.btn.sm{padding:7px 12px;font-size:12px}
+.btn.link{background:transparent;color:var(--rd);border:0;padding:7px 6px;font-size:12px}
 
-/* ---------- layout ---------- */
-.wrap{display:flex;gap:18px;max-width:1500px;margin:18px auto;padding:0 18px;align-items:flex-start}
-.side{width:270px;flex:none;position:sticky;top:86px}
-.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:18px}
+/* ============ ESTRUTURA ============ */
+.wrap{display:grid;grid-template-columns:280px 1fr;gap:20px;max-width:1360px;margin:20px auto 60px;padding:0 24px;align-items:start}
+.side{position:sticky;top:88px;display:flex;flex-direction:column;gap:16px}
+.main{min-width:0;display:flex;flex-direction:column;gap:20px}
 
-.panel{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 16px rgba(62,36,25,.08)}
-.panel .ph{padding:12px 16px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:8px}
-.panel .ph b{font-size:12.5px;letter-spacing:.5px;color:var(--choc);text-transform:uppercase}
-.panel .pb{padding:14px 16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.phead{display:flex;align-items:baseline;gap:10px;padding:16px 22px 14px;border-bottom:1px solid var(--line2)}
+.phead .n{font-size:12px;font-weight:800;color:var(--gold)}
+.phead b{font-size:12.5px;letter-spacing:1.2px;color:var(--choc);text-transform:uppercase;font-weight:800}
+.phead .hint{margin-left:auto;font-size:11.5px;color:var(--mute);font-weight:400}
+.pbody{padding:20px 22px 22px}
 
-/* sidebar projetos */
-.plist{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.pitem{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:9px;border:1px solid var(--line);
-  background:var(--cream);cursor:pointer;transition:background .12s}
-.pitem:hover{background:var(--cream2)}
-.pitem.sel{background:var(--choc);border-color:var(--choc)}
-.pitem.sel .pname{color:#fff}
-.pitem .pname{font-size:13px;font-weight:700;color:var(--choc);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pitem .st{width:11px;height:11px;border-radius:50%;flex:none}
-.cicloRow{display:flex;flex-direction:column;gap:4px;margin-top:6px}
-.cicloRow label{font-size:10px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
+/* ============ SIDEBAR ============ */
+.fl{font-size:10px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px}
+.plist{display:flex;flex-direction:column;margin:2px 0 12px}
+.pitem{display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;border-left:3px solid transparent;
+  border-radius:0 8px 8px 0;transition:background .12s}
+.pitem:hover{background:var(--cream)}
+.pitem.sel{background:var(--cream);border-left-color:var(--gold)}
+.pitem .st{width:9px;height:9px;border-radius:50%;flex:none}
+.pitem .pname{font-size:13px;font-weight:600;color:var(--choc2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pitem.sel .pname{color:var(--choc);font-weight:700}
+.sideacts{display:flex;gap:8px;align-items:center}
 
-/* inputs */
-input[type=text],select,textarea{font:inherit;font-size:13px;color:var(--choc);background:var(--cream);
-  border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
-input[type=text]:focus,select:focus,textarea:focus{outline:0;border-color:var(--goldlt);background:#fffdf7}
-textarea{resize:vertical;min-height:64px;line-height:1.5}
-select{cursor:pointer;font-weight:700}
-.fl{font-size:10px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
-.frow{display:grid;gap:12px;margin-bottom:12px}
-.frow.c3{grid-template-columns:2fr 1fr 1.3fr}
-.frow.c3b{grid-template-columns:1fr 1fr 1fr}
-.frow.c2{grid-template-columns:1fr 1fr}
+/* ============ CAMPOS ============ */
+input[type=text],select,textarea{font:inherit;font-size:13.5px;color:var(--ink);background:#fff;
+  border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%;height:40px}
+textarea{height:auto;resize:vertical;min-height:76px;line-height:1.55;padding-top:10px}
+input[type=text]:focus,select:focus,textarea:focus{outline:0;border-color:var(--goldlt);box-shadow:0 0 0 3px rgba(224,165,58,.18)}
+select{cursor:pointer;font-weight:600;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A5238' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}.c12{grid-column:span 12}
 
-/* selects de pílula coloridos */
-.selpill{border-radius:20px;text-align:center;font-weight:800}
-.sg-EM_ANDAMENTO{background:var(--goldlt);color:#2A1B12;border-color:var(--goldlt)}
-.sg-CONCLUÍDO{background:var(--g);color:#fff;border-color:var(--g)}
-.sg-PAUSADO{background:var(--n);color:#2A1B12;border-color:var(--n)}
-.sg-EM_TESTE{background:var(--ab);color:var(--ad);border-color:#E8CF93}
-.sg-PLANEJAMENTO{background:var(--cream2);color:var(--choc);border-color:var(--line)}
-.sg-CANCELADO{background:var(--r);color:#fff;border-color:var(--r)}
+.selpill{border-radius:8px;font-weight:700;text-align:left}
+.sg-EM_ANDAMENTO{background:#FBEFD3;color:#9A6A12;border-color:#EBD5A0}
+.sg-CONCLUÍDO{background:#E6F1E3;color:#2E7D32;border-color:#BFDDB9}
+.sg-PAUSADO{background:#F1EADB;color:#8A7A66;border-color:#DCD0B8}
+.sg-EM_TESTE{background:#FDF3DC;color:#B07E14;border-color:#EBD5A0}
+.sg-PLANEJAMENTO{background:#F4EAD7;color:#5A3A2A;border-color:#E6DCC6}
+.sg-CANCELADO{background:#F7E0DA;color:#B23A2A;border-color:#E8BEB4}
 
-/* tabela de etapas */
-table.et{width:100%;border-collapse:separate;border-spacing:0 6px}
-.et th{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--choc3);text-align:left;padding:0 6px}
+/* ============ TABELA DE ETAPAS ============ */
+table.et{width:100%;border-collapse:collapse}
+.et th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--mute);text-align:left;
+  padding:0 10px 9px;border-bottom:2px solid var(--line)}
 .et th.c{text-align:center}
-.et td{padding:0 4px;vertical-align:middle}
-.et input[type=text]{padding:7px 9px;font-size:12.5px}
-.et .num{width:26px;text-align:center;font-size:11px;font-weight:800;color:var(--mute)}
+.et td{padding:3px 4px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.et tbody tr:hover{background:var(--cream)}
+.et input[type=text]{border-color:transparent;background:transparent;height:36px;padding:6px 8px;border-radius:6px}
+.et input[type=text]:hover{border-color:var(--line)}
+.et input[type=text]:focus{background:#fff;border-color:var(--goldlt)}
+.et .num{width:30px;text-align:center;font-size:11px;font-weight:700;color:var(--mute)}
+.et .cst{width:64px;text-align:center}
+.et .cdel{width:34px;text-align:center}
 
-/* BOTÃO DE STATUS — o coração do pedido */
-.stbtn{width:38px;height:38px;border-radius:50%;border:2.5px solid var(--n);background:#fff;color:var(--nd);
-  font-size:16px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
-  transition:transform .07s, background .12s, border-color .12s;user-select:none}
-.stbtn:hover{transform:scale(1.14);box-shadow:0 2px 8px rgba(62,36,25,.25)}
-.stbtn:active{transform:scale(.92)}
+.stbtn{width:30px;height:30px;border-radius:50%;border:2px solid var(--n);background:#fff;color:var(--nd);
+  font-size:13px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  transition:transform .07s,background .12s,border-color .12s;user-select:none;vertical-align:middle}
+.stbtn:hover{transform:scale(1.15);box-shadow:0 2px 6px rgba(62,36,25,.22)}
+.stbtn:active{transform:scale(.9)}
 .stbtn.g{background:var(--g);border-color:var(--gd);color:#fff}
 .stbtn.a{background:var(--a);border-color:#C98F1E;color:#fff}
 .stbtn.r{background:var(--r);border-color:var(--rd);color:#fff}
-.rowdel{border:0;background:transparent;color:#C0897F;font-size:17px;cursor:pointer;font-weight:900;padding:2px 6px}
-.rowdel:hover{color:var(--r)}
-.addrow{margin-top:8px}
+.rowdel{border:0;background:transparent;color:#D4B4AA;font-size:16px;cursor:pointer;font-weight:800;padding:4px 8px;border-radius:6px}
+.rowdel:hover{color:var(--r);background:#F7E0DA}
 
-/* legenda clicável */
-.leg{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:11.5px;font-weight:700;color:var(--choc2);margin-top:10px}
-.leg span{display:flex;align-items:center;gap:5px}
-.leg i{width:12px;height:12px;border-radius:50%;display:inline-block;font-style:normal}
+.leg{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:11px;font-weight:600;color:var(--mute);
+  padding:12px 2px 0;text-transform:uppercase;letter-spacing:.6px}
+.leg span{display:flex;align-items:center;gap:6px}
+.leg i{width:10px;height:10px;border-radius:50%;display:inline-block;font-style:normal}
 
-/* dropzone da imagem */
-.drop{border:2px dashed var(--goldlt);border-radius:12px;background:var(--cream);min-height:210px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;
-  text-align:center;padding:16px;transition:background .15s}
-.drop:hover,.drop.over{background:var(--cream2)}
-.drop .ic{width:56px;height:56px;border-radius:14px;background:var(--goldlt);position:relative}
-.drop .ic:before{content:"";position:absolute;left:12px;top:11px;width:11px;height:11px;border-radius:50%;background:#fff}
-.drop .ic:after{content:"";position:absolute;left:11px;bottom:10px;border-left:17px solid transparent;
-  border-right:17px solid transparent;border-bottom:22px solid #fff}
-.drop b{color:var(--choc);font-size:13.5px}
-.drop small{color:var(--mute);font-style:italic}
-.drop img{max-width:100%;max-height:260px;border-radius:8px}
-.imgtools{display:flex;gap:8px;margin-top:8px;justify-content:center}
+/* ============ FOTOS ============ */
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.thumb{position:relative;aspect-ratio:4/3;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--cream)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .x{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;border:0;cursor:pointer;
+  background:rgba(42,23,4,.72);color:#fff;font-size:13px;font-weight:800;line-height:1;display:flex;align-items:center;justify-content:center}
+.thumb .x:hover{background:var(--r)}
+.addtile{aspect-ratio:4/3;border:2px dashed var(--goldlt);border-radius:10px;background:var(--cream);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--choc3);
+  font-size:12px;font-weight:700;text-align:center;padding:8px;transition:background .15s}
+.addtile:hover,.addtile.over{background:var(--cream2)}
+.addtile .plus{width:34px;height:34px;border-radius:50%;background:var(--goldlt);color:#2A1704;font-size:20px;font-weight:800;
+  display:flex;align-items:center;justify-content:center}
+.imghint{font-size:11.5px;color:var(--mute);margin-top:10px;line-height:1.5}
 
-/* dica */
-.tip{background:var(--cream);border-left:4px solid var(--goldlt);border-radius:8px;padding:9px 13px;
-  font-size:12px;color:var(--choc2);margin:0 auto 14px;max-width:1500px}
-.wrap2{max-width:1500px;margin:0 auto;padding:0 18px}
-
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--choc);color:#F4ECD8;
-  padding:11px 20px;border-radius:26px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.3);
-  opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
+/* ============ RODAPÉ / TOAST ============ */
+.foot{max-width:1360px;margin:0 auto;padding:0 24px 40px;display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.foot .wm{font-family:"Segoe Script",cursive;font-style:italic;font-weight:800;color:var(--gold);font-size:15px;text-transform:none;letter-spacing:0}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--choc);color:#F4ECD8;
+  padding:11px 22px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.28);
+  opacity:0;pointer-events:none;transition:opacity .25s;z-index:99;border-left:3px solid var(--gold)}
 .toast.show{opacity:1}
-@media(max-width:980px){.wrap{flex-direction:column}.side{width:100%;position:static}}
+@media(max-width:1020px){.wrap{grid-template-columns:1fr}.side{position:static}
+  .c6,.c4,.c3{grid-column:span 12}.thumbs{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 
-<div class="topbar">
+<div class="topbar"><div class="topin">
   <div class="logo">Divine</div>
-  <div>
-    <h1>Editor de Acompanhamento de Projetos</h1>
-    <div class="sub">P&D · preencha os campos, clique nas bolinhas de status e baixe o PowerPoint pronto</div>
+  <div class="tt">
+    <h1>Acompanhamento de Projetos</h1>
+    <div class="sub">Divine Chocolates · Pesquisa & Desenvolvimento</div>
   </div>
   <span class="spacer"></span>
-  <button class="btn ghost" onclick="saveJSON()">💾 Salvar dados</button>
-  <button class="btn ghost" onclick="document.getElementById('imp').click()">📂 Carregar dados</button>
+  <button class="btn ghost" onclick="saveJSON()">Exportar dados</button>
+  <button class="btn ghost" onclick="document.getElementById('imp').click()">Importar dados</button>
   <input id="imp" type="file" accept="application/json" style="display:none" onchange="loadJSON(event)">
-  <button class="btn gold" onclick="baixarPPTX()">⬇ Baixar PowerPoint (.pptx)</button>
-</div>
-
-<div class="wrap2" style="margin-top:14px">
-  <div class="tip">💡 <b>Como funciona:</b> tudo o que você digita é salvo automaticamente neste navegador. Clique numa bolinha de
-  status para alternar: ⚪ não iniciado → 🟡 em andamento → 🟢 concluído → 🔴 bloqueado. Ao final, <b>Baixar PowerPoint</b> gera a
-  apresentação completa (capa + 2 slides por projeto) já no padrão Divine. Use <b>Salvar dados</b> para guardar um arquivo de
-  backup ou passar para um colega.</div>
-</div>
+  <button class="btn primary" onclick="baixarPPTX()">⬇&nbsp; Gerar PowerPoint</button>
+</div></div>
 
 <div class="wrap">
-  <!-- ============ SIDEBAR ============ -->
+  <!-- ================= SIDEBAR ================= -->
   <div class="side">
     <div class="panel">
-      <div class="ph"><b>🍫 Projetos</b></div>
-      <div class="pb">
+      <div class="phead"><b>Portfólio</b><span class="hint" id="pcount"></span></div>
+      <div class="pbody" style="padding:14px 12px 16px">
         <div class="plist" id="plist"></div>
-        <button class="btn gold sm" style="width:100%" onclick="addProject()">+ Adicionar projeto</button>
-        <div style="display:flex;gap:6px;margin-top:6px">
-          <button class="btn sm" style="flex:1" onclick="dupProject()">Duplicar</button>
-          <button class="btn danger sm" style="flex:1" onclick="delProject()">Excluir</button>
+        <button class="btn primary sm" style="width:100%" onclick="addProject()">+ Novo projeto</button>
+        <div class="sideacts" style="margin-top:8px">
+          <button class="btn soft sm" style="flex:1" onclick="dupProject()">Duplicar</button>
+          <button class="btn link sm" onclick="delProject()">Excluir</button>
         </div>
-        <div class="cicloRow">
-          <label>Ciclo da reunião (capa)</label>
-          <input type="text" id="ciclo" oninput="state.ciclo=this.value;save()">
-        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="phead"><b>Apresentação</b></div>
+      <div class="pbody" style="padding:16px">
+        <label class="fl">Ciclo da reunião (capa)</label>
+        <input type="text" id="ciclo" oninput="state.ciclo=this.value;save()">
+        <div class="imghint" style="margin-top:12px">Os dados ficam salvos automaticamente neste navegador.
+          Use <b>Exportar dados</b> para backup ou para enviar a um colega.</div>
       </div>
     </div>
   </div>
 
-  <!-- ============ CONTEÚDO ============ -->
+  <!-- ================= CONTEÚDO ================= -->
   <div class="main">
-    <!-- SLIDE 1 -->
+
     <div class="panel">
-      <div class="ph"><b>📋 Slide 1 · Acompanhamento do Projeto</b></div>
-      <div class="pb">
-        <div class="frow c3">
-          <div><label class="fl">Nome do projeto</label><input type="text" id="f_nome" oninput="P().nome=this.value;save();renderList()"></div>
-          <div><label class="fl">Prioridade</label>
-            <select id="f_pri" class="selpill" onchange="P().prioridade=this.value;save()">
+      <div class="phead"><span class="n">01</span><b>Identificação do projeto</b><span class="hint">Slide 1 · cabeçalho</span></div>
+      <div class="pbody">
+        <div class="grid12">
+          <div class="c6"><label class="fl">Nome do projeto</label>
+            <input type="text" id="f_nome" oninput="P().nome=this.value;save();renderList()"></div>
+          <div class="c3"><label class="fl">Prioridade</label>
+            <select id="f_pri" onchange="P().prioridade=this.value;save()">
               <option>ALTA</option><option>MÉDIA</option><option>BAIXA</option><option>—</option>
             </select></div>
-          <div><label class="fl">Status geral</label>
+          <div class="c3"><label class="fl">Status geral</label>
             <select id="f_sg" class="selpill" onchange="P().statusGeral=this.value;save();paintSG()">
               <option>EM ANDAMENTO</option><option>CONCLUÍDO</option><option>PAUSADO</option>
               <option>EM TESTE</option><option>PLANEJAMENTO</option><option>CANCELADO</option>
             </select></div>
+          <div class="c4"><label class="fl">Responsável</label>
+            <input type="text" id="f_resp" oninput="P().resp=this.value;save()"></div>
+          <div class="c4"><label class="fl">Data de abertura</label>
+            <input type="text" id="f_ab" placeholder="dd/mm/aaaa" oninput="P().abertura=this.value;save()"></div>
+          <div class="c4"><label class="fl">Atualizado em</label>
+            <input type="text" id="f_at" placeholder="dd/mm/aaaa" oninput="P().atualizado=this.value;save()"></div>
         </div>
-        <div class="frow c3b">
-          <div><label class="fl">Responsável</label><input type="text" id="f_resp" oninput="P().resp=this.value;save()"></div>
-          <div><label class="fl">Data de abertura</label><input type="text" id="f_ab" oninput="P().abertura=this.value;save()"></div>
-          <div><label class="fl">Atualizado em</label><input type="text" id="f_at" oninput="P().atualizado=this.value;save()"></div>
-        </div>
+      </div>
+    </div>
 
-        <label class="fl" style="margin-top:6px">Status detalhado — clique na bolinha para mudar o status</label>
+    <div class="panel">
+      <div class="phead"><span class="n">02</span><b>Cronograma de etapas</b><span class="hint">clique na bolinha para alternar o status</span></div>
+      <div class="pbody">
         <table class="et">
-          <thead><tr><th></th><th>Etapa</th><th class="c">Status</th><th>Responsável</th><th>Previsto</th><th></th></tr></thead>
+          <thead><tr><th></th><th>Etapa</th><th class="c">Status</th><th>Responsável</th><th style="width:120px">Previsto</th><th></th></tr></thead>
           <tbody id="etapas"></tbody>
         </table>
-        <button class="btn sm addrow" onclick="addEtapa()">+ Adicionar etapa</button>
-        <div class="leg">
-          <span><i style="background:var(--g)"></i>Concluído</span>
-          <span><i style="background:var(--a)"></i>Em andamento</span>
-          <span><i style="background:#fff;border:2px solid var(--n)"></i>Não iniciado</span>
-          <span><i style="background:var(--r)"></i>Bloqueado</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+          <button class="btn soft sm" onclick="addEtapa()">+ Adicionar etapa</button>
+          <div class="leg">
+            <span><i style="background:var(--g)"></i>Concluído</span>
+            <span><i style="background:var(--a)"></i>Em andamento</span>
+            <span><i style="background:#fff;border:2px solid var(--n)"></i>Não iniciado</span>
+            <span><i style="background:var(--r)"></i>Bloqueado</span>
+          </div>
         </div>
-
-        <div class="frow c2" style="margin-top:14px">
-          <div><label class="fl">⚠ Pendências (uma por linha)</label>
-            <textarea id="f_pend" oninput="P().pend=linhas(this.value);save()"></textarea></div>
-          <div><label class="fl">→ Próximas ações (uma por linha)</label>
-            <textarea id="f_acoes" oninput="P().acoes=linhas(this.value);save()"></textarea></div>
-        </div>
-        <div><label class="fl">✎ Observações e comentários</label>
-          <textarea id="f_obs" oninput="P().obs=this.value;save()"></textarea></div>
       </div>
     </div>
 
-    <!-- SLIDE 2 -->
     <div class="panel">
-      <div class="ph"><b>🖼 Slide 2 · Imagens do Produto & Orçamento</b></div>
-      <div class="pb">
-        <div class="frow c2">
-          <div>
-            <label class="fl">Imagem do produto</label>
-            <div class="drop" id="drop" onclick="document.getElementById('fimg').click()">
-              <div class="ic" id="dropIc"></div>
-              <b id="dropTxt">Arraste a foto aqui ou clique para escolher</b>
-              <small>(a imagem entra no slide, na área tracejada)</small>
-            </div>
-            <input id="fimg" type="file" accept="image/*" style="display:none" onchange="pickImg(event)">
-            <div class="imgtools" id="imgtools" style="display:none">
-              <button class="btn sm" onclick="document.getElementById('fimg').click()">Trocar imagem</button>
-              <button class="btn danger sm" onclick="rmImg()">Remover</button>
-            </div>
-          </div>
-          <div>
-            <div style="margin-bottom:10px"><label class="fl">Custo estimado</label><input type="text" id="o_est" placeholder="R$ —" oninput="P().orc.estimado=this.value;save()"></div>
-            <div style="margin-bottom:10px"><label class="fl">Custo real</label><input type="text" id="o_real" placeholder="R$ —" oninput="P().orc.real=this.value;save()"></div>
-            <div style="margin-bottom:10px"><label class="fl">Fornecedor(es)</label><input type="text" id="o_forn" placeholder="—" oninput="P().orc.fornecedor=this.value;save()"></div>
-            <div style="margin-bottom:10px"><label class="fl">Aprovação</label><input type="text" id="o_apr" placeholder="—" oninput="P().orc.aprovacao=this.value;save()"></div>
-            <div><label class="fl">Observações sobre o orçamento</label>
-              <textarea id="o_obs" oninput="P().orc.obs=this.value;save()"></textarea></div>
-          </div>
+      <div class="phead"><span class="n">03</span><b>Pendências, ações e observações</b><span class="hint">Slide 1 · coluna direita</span></div>
+      <div class="pbody">
+        <div class="grid12">
+          <div class="c6"><label class="fl">Pendências — uma por linha</label>
+            <textarea id="f_pend" oninput="P().pend=linhas(this.value);save()"></textarea></div>
+          <div class="c6"><label class="fl">Próximas ações — uma por linha</label>
+            <textarea id="f_acoes" oninput="P().acoes=linhas(this.value);save()"></textarea></div>
+          <div class="c12"><label class="fl">Observações e comentários</label>
+            <textarea id="f_obs" oninput="P().obs=this.value;save()"></textarea></div>
         </div>
       </div>
     </div>
+
+    <div class="panel">
+      <div class="phead"><span class="n">04</span><b>Imagens do produto</b><span class="hint">Slide 2 · até 6 fotos, a grade se ajusta sozinha</span></div>
+      <div class="pbody">
+        <div class="thumbs" id="thumbs"></div>
+        <input id="fimg" type="file" accept="image/*" multiple style="display:none" onchange="pickImg(event)">
+        <div class="imghint">Arraste as fotos para o quadro ou clique em <b>adicionar</b>. Com 1 foto ela ocupa o espaço todo;
+          com 2 ou mais, o slide monta a grade automaticamente (mockups, protótipos, capturas de tela…).</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="phead"><span class="n">05</span><b>Orçamento</b><span class="hint">Slide 2 · painel financeiro</span></div>
+      <div class="pbody">
+        <div class="grid12">
+          <div class="c3"><label class="fl">Custo estimado</label>
+            <input type="text" id="o_est" placeholder="R$ —" oninput="P().orc.estimado=this.value;save()"></div>
+          <div class="c3"><label class="fl">Custo real</label>
+            <input type="text" id="o_real" placeholder="R$ —" oninput="P().orc.real=this.value;save()"></div>
+          <div class="c3"><label class="fl">Fornecedor(es)</label>
+            <input type="text" id="o_forn" placeholder="—" oninput="P().orc.fornecedor=this.value;save()"></div>
+          <div class="c3"><label class="fl">Aprovação</label>
+            <input type="text" id="o_apr" placeholder="—" oninput="P().orc.aprovacao=this.value;save()"></div>
+          <div class="c12"><label class="fl">Observações sobre o orçamento</label>
+            <textarea id="o_obs" oninput="P().orc.obs=this.value;save()"></textarea></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
+<div class="foot">
+  <span>Divine Chocolates · P&D — Acompanhamento de Projetos</span>
+  <span class="wm">Divine</span>
+</div>
 <div class="toast" id="toast"></div>
 
 <!--PPTXGEN-->
@@ -258,6 +276,7 @@ table.et{width:100%;border-collapse:separate;border-spacing:0 6px}
 const KEY = "divine_editor_v1";
 const ORDER = ["n", "a", "g", "r"];
 const SYM = { n: "", a: "◐", g: "✓", r: "!" };
+const MAX_IMGS = 6;
 const ETAPAS_PADRAO = ["1. Pesquisa de mercado","2. Desenv. da formulação","3. Custo","4. Homologação",
   "5. Volume (comercial)","6. Engenharias e FTs","7. Criação da arte e etiquetas","8. Tabela comercial",
   "9. Comunicado vendedores","10. Lançamento"];
@@ -269,7 +288,7 @@ function novoProjeto(nome) {
     etapas: ETAPAS_PADRAO.map(n => ({ n, st: "n", resp: "", prev: "" })),
     pend: [], acoes: [], obs: "",
     orc: { estimado: "", real: "", fornecedor: "", aprovacao: "", obs: "" },
-    img: null,
+    imgs: [],
   };
 }
 const DEFAULT = { ciclo: "Junho / 2026", sel: 0, projects: [(() => {
@@ -289,11 +308,20 @@ const DEFAULT = { ciclo: "Junho / 2026", sel: 0, projects: [(() => {
 })()] };
 
 let state = load();
+function migrate(s) {
+  (s.projects || []).forEach(p => {
+    if (!p.imgs) p.imgs = p.img ? [p.img] : [];
+    delete p.img;
+    if (!p.orc) p.orc = { estimado: "", real: "", fornecedor: "", aprovacao: "", obs: "" };
+  });
+  return s;
+}
 function load() {
-  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.projects && s.projects.length) return s; } catch (e) {}
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.projects && s.projects.length) return migrate(s); } catch (e) {}
   return JSON.parse(JSON.stringify(DEFAULT));
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {
+  toast("Atenção: não consegui salvar (imagens muito grandes?). Exporte os dados como backup."); } }
 function P() { return state.projects[state.sel]; }
 function linhas(v) { return v.split("\n").map(s => s.trim()).filter(Boolean); }
 function esc(v) { return (v || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
@@ -302,8 +330,8 @@ function esc(v) { return (v || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;"
 const SGDOT = { "EM ANDAMENTO": "var(--a)", "CONCLUÍDO": "var(--g)", "PAUSADO": "var(--n)",
   "EM TESTE": "var(--goldlt)", "PLANEJAMENTO": "var(--n)", "CANCELADO": "var(--r)" };
 function renderList() {
-  const el = document.getElementById("plist");
-  el.innerHTML = state.projects.map((p, i) =>
+  document.getElementById("pcount").textContent = state.projects.length + (state.projects.length === 1 ? " projeto" : " projetos");
+  document.getElementById("plist").innerHTML = state.projects.map((p, i) =>
     `<div class="pitem ${i === state.sel ? "sel" : ""}" onclick="selProject(${i})">
        <span class="st" style="background:${SGDOT[p.statusGeral] || "var(--n)"}"></span>
        <span class="pname">${esc(p.nome) || "(sem nome)"}</span></div>`).join("");
@@ -345,19 +373,17 @@ function renderForm() {
   document.getElementById("o_apr").value = p.orc.aprovacao || "";
   document.getElementById("o_obs").value = p.orc.obs || "";
   renderEtapas();
-  renderImg();
+  renderImgs();
 }
 function renderEtapas() {
-  const p = P();
-  document.getElementById("etapas").innerHTML = p.etapas.map((e, i) => `
+  document.getElementById("etapas").innerHTML = P().etapas.map((e, i) => `
     <tr>
-      <td class="num">${i + 1}</td>
+      <td class="num">${String(i + 1).padStart(2, "0")}</td>
       <td><input type="text" value="${esc(e.n)}" oninput="P().etapas[${i}].n=this.value;save()"></td>
-      <td style="text-align:center">
-        <button class="stbtn ${e.st}" title="Clique para mudar o status" onclick="cycleSt(${i})">${SYM[e.st]}</button></td>
+      <td class="cst"><button class="stbtn ${e.st}" title="Clique para mudar o status" onclick="cycleSt(${i})">${SYM[e.st]}</button></td>
       <td><input type="text" value="${esc(e.resp)}" placeholder="—" oninput="P().etapas[${i}].resp=this.value;save()"></td>
-      <td style="width:110px"><input type="text" value="${esc(e.prev)}" placeholder="—" oninput="P().etapas[${i}].prev=this.value;save()"></td>
-      <td><button class="rowdel" title="Remover etapa" onclick="delEtapa(${i})">×</button></td>
+      <td><input type="text" value="${esc(e.prev)}" placeholder="—" oninput="P().etapas[${i}].prev=this.value;save()"></td>
+      <td class="cdel"><button class="rowdel" title="Remover etapa" onclick="delEtapa(${i})">×</button></td>
     </tr>`).join("");
 }
 function cycleSt(i) {
@@ -368,41 +394,57 @@ function cycleSt(i) {
 function addEtapa() { P().etapas.push({ n: "", st: "n", resp: "", prev: "" }); save(); renderEtapas(); }
 function delEtapa(i) { P().etapas.splice(i, 1); save(); renderEtapas(); }
 
-/* ================= imagem ================= */
-function renderImg() {
-  const p = P(), d = document.getElementById("drop");
-  const ic = document.getElementById("dropIc"), tx = document.getElementById("dropTxt");
-  const old = d.querySelector("img"); if (old) old.remove();
-  if (p.img) {
-    ic.style.display = "none"; tx.style.display = "none";
-    d.querySelector("small").style.display = "none";
-    const im = document.createElement("img"); im.src = p.img; d.appendChild(im);
-    document.getElementById("imgtools").style.display = "flex";
-  } else {
-    ic.style.display = ""; tx.style.display = "";
-    d.querySelector("small").style.display = "";
-    document.getElementById("imgtools").style.display = "none";
+/* ================= imagens ================= */
+function renderImgs() {
+  const p = P();
+  const tiles = p.imgs.map((im, i) => `
+    <div class="thumb"><img src="${im}" alt="foto ${i + 1}">
+      <button class="x" title="Remover foto" onclick="rmImg(${i})">×</button></div>`);
+  if (p.imgs.length < MAX_IMGS) {
+    tiles.push(`<div class="addtile" id="addtile" onclick="document.getElementById('fimg').click()">
+      <div class="plus">+</div><span>adicionar foto${p.imgs.length ? "" : "s"}<br>(arraste ou clique)</span></div>`);
+  }
+  document.getElementById("thumbs").innerHTML = tiles.join("");
+  const at = document.getElementById("addtile");
+  if (at) {
+    at.addEventListener("dragover", e => { e.preventDefault(); at.classList.add("over"); });
+    at.addEventListener("dragleave", () => at.classList.remove("over"));
+    at.addEventListener("drop", e => { e.preventDefault(); at.classList.remove("over"); addFiles(e.dataTransfer.files); });
   }
 }
-function fileToData(f) {
-  if (!f || !f.type.startsWith("image/")) return;
-  const rd = new FileReader();
-  rd.onload = e => { P().img = e.target.result; save(); renderImg(); };
-  rd.readAsDataURL(f);
+function resizeImage(dataURL, cb) {
+  const img = new Image();
+  img.onload = () => {
+    const MAXD = 1400;
+    let { width: w, height: h } = img;
+    if (w > MAXD || h > MAXD) { const k = Math.min(MAXD / w, MAXD / h); w = Math.round(w * k); h = Math.round(h * k); }
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    cv.getContext("2d").drawImage(img, 0, 0, w, h);
+    cb(cv.toDataURL("image/jpeg", 0.85));
+  };
+  img.src = dataURL;
 }
-function pickImg(ev) { fileToData(ev.target.files[0]); ev.target.value = ""; }
-function rmImg() { P().img = null; save(); renderImg(); }
-const drop = document.getElementById("drop");
-drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
-drop.addEventListener("dragleave", () => drop.classList.remove("over"));
-drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); fileToData(e.dataTransfer.files[0]); });
+function addFiles(files) {
+  const livres = MAX_IMGS - P().imgs.length;
+  const lote = Array.from(files).filter(f => f.type.startsWith("image/")).slice(0, livres);
+  if (Array.from(files).length > lote.length && livres <= 0) { toast("Limite de " + MAX_IMGS + " fotos por projeto."); return; }
+  lote.forEach(f => {
+    const rd = new FileReader();
+    rd.onload = e => resizeImage(e.target.result, d => { P().imgs.push(d); save(); renderImgs(); });
+    rd.readAsDataURL(f);
+  });
+}
+function pickImg(ev) { addFiles(ev.target.files); ev.target.value = ""; }
+function rmImg(i) { P().imgs.splice(i, 1); save(); renderImgs(); }
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => e.preventDefault());
 
 /* ================= arquivo / export ================= */
 function saveJSON() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
   a.download = "divine_projetos_dados.json"; a.click();
-  toast("Dados salvos — guarde o arquivo como backup.");
+  toast("Dados exportados — guarde o arquivo como backup.");
 }
 function loadJSON(ev) {
   const f = ev.target.files[0]; if (!f) return;
@@ -410,7 +452,7 @@ function loadJSON(ev) {
   rd.onload = e => {
     try {
       const s = JSON.parse(e.target.result);
-      if (s.projects && s.projects.length) { s.sel = 0; state = s; save(); renderAll(); toast("Dados carregados!"); }
+      if (s.projects && s.projects.length) { s.sel = 0; state = migrate(s); save(); renderAll(); toast("Dados importados!"); }
       else alert("Arquivo inválido.");
     } catch (err) { alert("Não consegui ler o arquivo."); }
   };
@@ -426,7 +468,7 @@ function baixarPPTX() {
 function toast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg; t.classList.add("show");
-  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 3200);
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 3400);
 }
 
 /* ================= boot ================= */

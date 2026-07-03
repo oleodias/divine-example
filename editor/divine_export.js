@@ -165,46 +165,77 @@
     footer(s, true);
   }
 
+  // frações [x, y, w, h] da área útil, conforme a quantidade de fotos
+  function gridFor(n) {
+    if (n <= 1) return [[0, 0, 1, 1]];
+    if (n === 2) return [[0, 0, .5, 1], [.5, 0, .5, 1]];
+    if (n === 3) return [[0, 0, .58, 1], [.58, 0, .42, .5], [.58, .5, .42, .5]];
+    if (n === 4) return [[0, 0, .5, .5], [.5, 0, .5, .5], [0, .5, .5, .5], [.5, .5, .5, .5]];
+    if (n === 5) return [[0, 0, 1 / 3, .5], [1 / 3, 0, 1 / 3, .5], [2 / 3, 0, 1 / 3, .5], [0, .5, .5, .5], [.5, .5, .5, .5]];
+    return [[0, 0, 1 / 3, .5], [1 / 3, 0, 1 / 3, .5], [2 / 3, 0, 1 / 3, .5], [0, .5, 1 / 3, .5], [1 / 3, .5, 1 / 3, .5], [2 / 3, .5, 1 / 3, .5]];
+  }
+
   function slideOrcamento(pptx, p) {
     const s = pptx.addSlide();
     s.background = { color: C.CREAM };
     header(s, "IMAGENS DO PRODUTO & ORÇAMENTO", p.nome || "[ Nome do Projeto ]");
 
-    // área da imagem
-    s.addShape("roundRect", { rectRadius: 0.17, x: 0.35, y: 1.30, w: 7.55, h: 5.60, fill: { color: C.WHITE }, line: { color: C.GOLDLT, width: 1.5, dashType: "dash" } });
-    if (p.img) {
-      s.addImage({ data: p.img, x: 0.55, y: 1.50, w: 7.15, h: 5.20, sizing: { type: "contain", w: 7.15, h: 5.20 } });
+    // ---- card de imagens (esquerda) ----
+    card(s, 0.35, 1.30, 7.55, 5.60);
+    iconCircle(s, 0.61, 1.52, C.GOLDLT, "◨");
+    s.addText("IMAGENS DO PRODUTO", { x: 0.98, y: 1.535, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0 });
+
+    const imgs = (p.imgs && p.imgs.length ? p.imgs : (p.img ? [p.img] : [])).slice(0, 6);
+    const ax = 0.61, ay = 1.98, aw = 7.03, ah = 4.66, gap = 0.14;
+    if (imgs.length) {
+      const cells = gridFor(imgs.length);
+      imgs.forEach((im, i) => {
+        const [fxr, fyr, fwr, fhr] = cells[i];
+        const cx = ax + fxr * aw + (fxr ? gap / 2 : 0);
+        const cy = ay + fyr * ah + (fyr ? gap / 2 : 0);
+        const cw = fwr * aw - (fxr + fwr < 1 ? gap / 2 : 0) - (fxr ? gap / 2 : 0);
+        const ch = fhr * ah - (fyr + fhr < 1 ? gap / 2 : 0) - (fyr ? gap / 2 : 0);
+        s.addShape("roundRect", { rectRadius: 0.06, x: cx, y: cy, w: cw, h: ch, fill: { color: "FDFBF5" }, line: { color: C.LINE, width: 0.75 } });
+        s.addImage({ data: im, x: cx + 0.07, y: cy + 0.07, w: cw - 0.14, h: ch - 0.14, sizing: { type: "contain", w: cw - 0.14, h: ch - 0.14 } });
+      });
     } else {
-      const cx = 0.35 + 7.55 / 2;
-      s.addShape("roundRect", { rectRadius: 0.21, x: cx - 0.42, y: 3.05, w: 0.84, h: 0.84, fill: { color: C.GOLDLT }, line: NOLINE });
-      s.addShape("ellipse", { x: cx - 0.24, y: 3.20, w: 0.17, h: 0.17, fill: { color: C.WHITE }, line: NOLINE });
-      s.addShape("triangle", { x: cx - 0.26, y: 3.42, w: 0.52, h: 0.36, fill: { color: C.WHITE }, line: NOLINE });
-      s.addText("Espaço para imagem do produto", { x: 0.85, y: 4.10, w: 6.55, h: 0.32, fontSize: 14, bold: true, color: C.CHOC, align: "center", fontFace: FONT, margin: 0 });
-      s.addText("(insira aqui fotos, mockups, protótipos ou capturas de tela)", { x: 0.85, y: 4.46, w: 6.55, h: 0.3, fontSize: 10, italic: true, color: C.MUTE, align: "center", fontFace: FONT, margin: 0 });
+      s.addShape("roundRect", { rectRadius: 0.10, x: ax, y: ay, w: aw, h: ah, fill: { color: "FDFBF5" }, line: { color: C.GOLDLT, width: 1.25, dashType: "dash" } });
+      const cx = ax + aw / 2;
+      s.addShape("roundRect", { rectRadius: 0.18, x: cx - 0.38, y: 3.35, w: 0.76, h: 0.76, fill: { color: C.GOLDLT }, line: NOLINE });
+      s.addShape("ellipse", { x: cx - 0.21, y: 3.49, w: 0.15, h: 0.15, fill: { color: C.WHITE }, line: NOLINE });
+      s.addShape("triangle", { x: cx - 0.23, y: 3.68, w: 0.46, h: 0.32, fill: { color: C.WHITE }, line: NOLINE });
+      s.addText("Espaço para imagens do produto", { x: ax, y: 4.30, w: aw, h: 0.3, fontSize: 13, bold: true, color: C.CHOC, align: "center", fontFace: FONT, margin: 0 });
+      s.addText("fotos, mockups, protótipos ou capturas de tela — até 6 por projeto", { x: ax, y: 4.62, w: aw, h: 0.28, fontSize: 9.5, italic: true, color: C.MUTE, align: "center", fontFace: FONT, margin: 0 });
     }
 
-    // card orçamento
+    // ---- card orçamento (direita) ----
     card(s, 8.10, 1.30, 4.90, 5.60);
     iconCircle(s, 8.36, 1.52, C.GOLD, "$");
     s.addText("ORÇAMENTO", { x: 8.73, y: 1.535, w: 3.5, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0 });
 
     const o = p.orc || {};
-    const campos = [
-      ["CUSTO ESTIMADO", o.estimado || "R$ —"],
-      ["CUSTO REAL", o.real || "R$ —"],
-      ["FORNECEDOR(ES)", o.fornecedor || "—"],
-      ["APROVAÇÃO", o.aprovacao || "—"],
-    ];
-    const fx = 8.40, fw = 4.30;
-    let fy = 1.98;
-    for (const [lab, val] of campos) {
-      s.addText(lab, { x: fx, y: fy, w: fw, h: 0.18, fontSize: 8, bold: true, color: C.MUTE, fontFace: FONT, margin: 0 });
-      s.addText(val, { shape: "roundRect", rectRadius: 0.055, x: fx, y: fy + 0.21, w: fw, h: 0.34, fill: { color: C.CREAM2 }, line: { color: C.LINE, width: 0.75 }, fontSize: 10.5, bold: true, color: C.CHOC2, align: "left", valign: "middle", margin: [0.02, 0.05, 0.02, 0.12], fontFace: FONT });
-      fy += 0.72;
+    const fx = 8.38, fw = 4.34;
+    // KPIs lado a lado
+    const kw = (fw - 0.18) / 2;
+    [["CUSTO ESTIMADO", o.estimado || "R$ —", C.CHOC, C.CREAM2, C.LINE],
+     ["CUSTO REAL", o.real || "R$ —", C.GD, "EDF5EB", "CFE3CB"]].forEach(([lab, val, vc, bg, ln], i) => {
+      const kx = fx + i * (kw + 0.18);
+      s.addShape("roundRect", { rectRadius: 0.07, x: kx, y: 1.96, w: kw, h: 0.92, fill: { color: bg }, line: { color: ln, width: 0.75 } });
+      s.addText(lab, { x: kx + 0.13, y: 2.08, w: kw - 0.2, h: 0.18, fontSize: 7.5, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1 });
+      s.addText(val, { x: kx + 0.13, y: 2.30, w: kw - 0.2, h: 0.42, fontSize: val.length > 14 ? 13 : 16, bold: true, color: vc, fontFace: FONT, margin: 0, valign: "middle" });
+    });
+    // campos
+    let fy = 3.08;
+    for (const [lab, val] of [["FORNECEDOR(ES)", o.fornecedor || "—"], ["APROVAÇÃO", o.aprovacao || "—"]]) {
+      s.addText(lab, { x: fx, y: fy, w: fw, h: 0.18, fontSize: 8, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1 });
+      s.addText(val, { shape: "roundRect", rectRadius: 0.055, x: fx, y: fy + 0.21, w: fw, h: 0.36, fill: { color: "FDFBF5" }, line: { color: C.LINE, width: 0.75 }, fontSize: 10.5, bold: true, color: C.CHOC2, align: "left", valign: "middle", margin: [2, 4, 2, 10], fontFace: FONT });
+      fy += 0.74;
     }
-    s.addText("OBSERVAÇÕES SOBRE O ORÇAMENTO", { x: fx, y: fy, w: fw, h: 0.18, fontSize: 8, bold: true, color: C.MUTE, fontFace: FONT, margin: 0 });
-    s.addText(o.obs || "—", { shape: "roundRect", rectRadius: 0.07, x: fx, y: fy + 0.21, w: fw, h: 1.12, fill: { color: C.OBS_BG }, line: { color: C.OBS_LN, width: 0.75 }, fontSize: 10, color: C.CHOC2, align: "left", valign: "top", margin: [0.08, 0.08, 0.08, 0.16], fontFace: FONT });
-    s.addShape("rect", { x: fx, y: fy + 0.21, w: 0.055, h: 1.12, fill: { color: C.GOLDLT }, line: NOLINE });
+    // observações
+    s.addText("OBSERVAÇÕES SOBRE O ORÇAMENTO", { x: fx, y: fy + 0.02, w: fw, h: 0.18, fontSize: 8, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1 });
+    const oh = 6.72 - (fy + 0.25);
+    s.addText(o.obs || "—", { shape: "roundRect", rectRadius: 0.07, x: fx, y: fy + 0.25, w: fw, h: oh, fill: { color: C.OBS_BG }, line: { color: C.OBS_LN, width: 0.75 }, fontSize: 10, color: C.CHOC2, align: "left", valign: "top", margin: [6, 6, 6, 13], fontFace: FONT });
+    s.addShape("rect", { x: fx, y: fy + 0.25, w: 0.055, h: oh, fill: { color: C.GOLDLT }, line: NOLINE });
 
     footer(s, false);
   }
