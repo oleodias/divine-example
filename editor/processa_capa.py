@@ -59,6 +59,20 @@ def datauri_jpeg(im, q=82):
     im.save(buf, "JPEG", quality=q, optimize=True, progressive=True)
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode(), len(buf.getvalue())
 
+def header_band(src_im, flip):
+    """faixa fina p/ o cabeçalho dos slides: recorte da área lisa, escurecido
+       com chocolate para virar textura sutil (texto branco/logo continuam legíveis)."""
+    w, h = src_im.size
+    # pega a metade mais 'limpa' (direita no original) numa faixa horizontal do meio
+    x0 = int(w * 0.42); y0 = int(h * 0.30); y1 = int(h * 0.62)
+    band = src_im.convert("RGB").crop((x0, y0, w, y1))
+    band = cover_crop(band, 2400, 300)
+    if flip:
+        band = band.transpose(Image.FLIP_LEFT_RIGHT)
+    ov = Image.new("RGBA", band.size, (CHOC[0], CHOC[1], CHOC[2], int(0.62 * 255)))
+    out = band.convert("RGBA"); out.alpha_composite(ov)
+    return out.convert("RGB")
+
 def main():
     args = sys.argv[1:]
     flip = "--no-flip" not in args
@@ -66,23 +80,27 @@ def main():
     pos = [a for a in args if not a.startswith("--")]
     src, repo = pos[0], pos[1]
 
-    im = Image.open(src)
-    im = cover_crop(im, TW, TH)
+    orig = Image.open(src)
+    im = cover_crop(orig, TW, TH)
     if flip:
         im = im.transpose(Image.FLIP_LEFT_RIGHT)
     im = scrim(im, side)
 
+    band = header_band(orig, flip)
+
     uri, nbytes = datauri_jpeg(im, 82)
+    uri_h, hbytes = datauri_jpeg(band, 82)
     js = ("/* gerado por processa_capa.py — foto de capa Divine embutida */\n"
           "(function(root,f){if(typeof module===\"object\"&&module.exports)module.exports=f();"
           "else root.DivineCapa=f();})(typeof self!==\"undefined\"?self:this,function(){return{\n"
-          "BG:%s};});\n" % _q(uri))
+          "BG:%s,\nHEADER:%s};});\n" % (_q(uri), _q(uri_h)))
     with open(os.path.join(repo, "editor", "divine_capa.js"), "w") as f:
         f.write(js)
     im.save(os.path.join(repo, "apresentacao", "capa_bg.jpg"), "JPEG", quality=88, optimize=True)
+    band.save(os.path.join(repo, "apresentacao", "header_bg.jpg"), "JPEG", quality=88, optimize=True)
 
-    print("capa: %dx%d | flip=%s | scrim=%s | embutido=%d KB"
-          % (TW, TH, flip, side, nbytes // 1024))
+    print("capa: %dx%d | flip=%s | scrim=%s | capa=%d KB | header=%d KB"
+          % (TW, TH, flip, side, nbytes // 1024, hbytes // 1024))
 
 def _q(s):
     import json

@@ -66,7 +66,11 @@
   }
 
   function header(slide, eyebrow, title, prioridade, statusGeral) {
-    slide.addShape("rect", { x: 0, y: 0, w: 13.333, h: 0.98, fill: { color: C.CHOC }, line: NOLINE });
+    if (CAPA && CAPA.HEADER) {
+      slide.addImage({ data: CAPA.HEADER, x: 0, y: 0, w: 13.333, h: 0.98 });
+    } else {
+      slide.addShape("rect", { x: 0, y: 0, w: 13.333, h: 0.98, fill: { color: C.CHOC }, line: NOLINE });
+    }
     slide.addShape("rect", { x: 0, y: 0.98, w: 13.333, h: 0.028, fill: { color: C.GOLD }, line: NOLINE });
     const txX = logo(slide);
     slide.addText(eyebrow, { x: txX + 0.02, y: 0.155, w: 8.0, h: 0.25, fontSize: 10, bold: true, color: C.GOLDLT, fontFace: FONT, margin: 0 });

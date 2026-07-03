@@ -43,6 +43,8 @@ SCRIPT = "Segoe Script"
 
 LOGO_WM = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo_wordmark.png")
 HAS_LOGO = os.path.exists(LOGO_WM)
+HEADER_BG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "header_bg.jpg")
+HAS_HEADER = os.path.exists(HEADER_BG)
 
 SW, SH = Inches(13.333), Inches(7.5)
 
@@ -153,7 +155,10 @@ def logo_block(s, x=0.30, y=0.17, sz=0.62):
     return 1.08
 
 def header(s, eyebrow, title, prioridade=None, status_geral=None, status_fill=GOLDLT, status_tc=INK):
-    rect(s, 0, 0, 13.333, 0.98, CHOC)
+    if HAS_HEADER:
+        s.shapes.add_picture(HEADER_BG, Inches(0), Inches(0), width=Inches(13.333), height=Inches(0.98))
+    else:
+        rect(s, 0, 0, 13.333, 0.98, CHOC)
     rect(s, 0, 0.98, 13.333, 0.028, GOLD)          # filete dourado
     tx0 = logo_block(s)
     text(s, tx0, 0.155, 8.0, 0.25, [[(eyebrow, 10, True, GOLDLT)]])
@@ -451,6 +456,6 @@ for lab, f, tc in gerais:
     gx += w + 0.16
 footer(s, legend=False)
 
-out = "/tmp/claude-0/-home-user-clone-example/8085e797-64ee-5fbb-9953-cc50d096d298/scratchpad/Divine_Acompanhamento_Projetos_MODELO.pptx"
+out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Divine_Acompanhamento_Projetos_MODELO.pptx")
 prs.save(out)
 print("OK:", out)
