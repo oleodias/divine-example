@@ -247,9 +247,9 @@ table.et{width:100%;border-collapse:collapse}
       <div class="pbody">
         <div class="grid12">
           <div class="c3"><label class="fl">Custo estimado</label>
-            <input type="text" id="o_est" placeholder="R$ —" oninput="P().orc.estimado=this.value;save()"></div>
+            <input type="text" id="o_est" placeholder="R$ —" inputmode="numeric" oninput="moeda(this,'estimado')"></div>
           <div class="c3"><label class="fl">Custo real</label>
-            <input type="text" id="o_real" placeholder="R$ —" oninput="P().orc.real=this.value;save()"></div>
+            <input type="text" id="o_real" placeholder="R$ —" inputmode="numeric" oninput="moeda(this,'real')"></div>
           <div class="c3"><label class="fl">Fornecedor(es)</label>
             <input type="text" id="o_forn" placeholder="—" oninput="P().orc.fornecedor=this.value;save()"></div>
           <div class="c3"><label class="fl">Aprovação</label>
@@ -642,8 +642,8 @@ function renderForm() {
   document.getElementById("f_pend").value = (p.pend || []).join("\n");
   document.getElementById("f_acoes").value = (p.acoes || []).join("\n");
   document.getElementById("f_obs").value = p.obs || "";
-  document.getElementById("o_est").value = p.orc.estimado || "";
-  document.getElementById("o_real").value = p.orc.real || "";
+  document.getElementById("o_est").value = p.orc.estimado = fmtMoeda(p.orc.estimado || "");
+  document.getElementById("o_real").value = p.orc.real = fmtMoeda(p.orc.real || "");
   document.getElementById("o_forn").value = p.orc.fornecedor || "";
   document.getElementById("o_apr").value = p.orc.aprovacao || "";
   document.getElementById("o_obs").value = p.orc.obs || "";
@@ -669,7 +669,25 @@ function cycleSt(i) {
 function addEtapa() { P().etapas.push({ n: "", st: "n", resp: "", prev: "" }); save(); renderEtapas(); }
 function delEtapa(i) { P().etapas.splice(i, 1); save(); renderEtapas(); }
 
-/* ================= imagens ================= */
+/* ================= moeda (pt-BR) ================= */
+function fmtMoeda(v) {
+  v = (v || "").replace(/[^\d,]/g, "");
+  if (!v) return "";
+  const m = v.match(/^([\d.]*)(?:,(.*))?$/) || [];
+  let i = (m[1] || "").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  const temVirgula = v.includes(",");
+  if (!i && !temVirgula) return "";
+  if (!i) i = "0";
+  i = i.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  let out = "R$ " + i;
+  if (temVirgula) out += "," + (m[2] || "").replace(/\D/g, "").slice(0, 2);
+  return out;
+}
+function moeda(el, campo) {
+  el.value = fmtMoeda(el.value);
+  P().orc[campo] = el.value;
+  save();
+}
 function renderImgs() {
   const p = P();
   const tiles = p.imgs.map((im, i) => `
