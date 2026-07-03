@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor de Projetos — Divine P&D</title>
+<style>
+:root{
+  --choc:#3E2419; --choc2:#5A3A2A; --choc3:#7A5238; --gold:#C9932E; --goldlt:#E0A53A;
+  --cream:#FBF6EA; --cream2:#F4EAD7; --line:#E3D6BF; --ink:#2A1B12; --mute:#9C8C72;
+  --g:#43A047; --gd:#2E7D32; --gb:#E6F1E3;
+  --a:#E0A53A; --ad:#9A6A12; --ab:#FBEFD3;
+  --r:#C0392F; --rd:#B23A2A; --rb:#F7E0DA;
+  --n:#CDBDA4; --nd:#8A7A66; --nb:#F1EADB;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Arial,Helvetica,sans-serif}
+body{background:#EFE6D2;color:var(--ink);min-height:100vh}
+
+/* ---------- topo ---------- */
+.topbar{background:linear-gradient(90deg,var(--choc),#4E3020);border-bottom:3px solid var(--gold);
+  padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.logo{width:44px;height:44px;border-radius:11px;background:#A83224;display:flex;align-items:center;justify-content:center;
+  color:var(--goldlt);font-style:italic;font-weight:800;font-size:13px;font-family:"Segoe Script",cursive}
+.topbar h1{font-size:17px;color:#fff}
+.topbar .sub{font-size:11.5px;color:#E7D8C2;margin-top:1px}
+.topbar .spacer{margin-left:auto}
+.btn{border:0;border-radius:9px;padding:10px 15px;font-size:13px;font-weight:700;cursor:pointer;
+  color:#fff;background:var(--choc3);transition:filter .15s,transform .08s;white-space:nowrap}
+.btn:hover{filter:brightness(1.12)} .btn:active{transform:scale(.96)}
+.btn.gold{background:var(--goldlt);color:#3a2410}
+.btn.ghost{background:transparent;color:#EBDCC4;border:1px solid #8A6A50}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:7px}
+.btn.danger{background:transparent;color:#C0897F;border:1px solid #C0897F}
+
+/* ---------- layout ---------- */
+.wrap{display:flex;gap:18px;max-width:1500px;margin:18px auto;padding:0 18px;align-items:flex-start}
+.side{width:270px;flex:none;position:sticky;top:86px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:18px}
+
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 16px rgba(62,36,25,.08)}
+.panel .ph{padding:12px 16px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:8px}
+.panel .ph b{font-size:12.5px;letter-spacing:.5px;color:var(--choc);text-transform:uppercase}
+.panel .pb{padding:14px 16px}
+
+/* sidebar projetos */
+.plist{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.pitem{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:9px;border:1px solid var(--line);
+  background:var(--cream);cursor:pointer;transition:background .12s}
+.pitem:hover{background:var(--cream2)}
+.pitem.sel{background:var(--choc);border-color:var(--choc)}
+.pitem.sel .pname{color:#fff}
+.pitem .pname{font-size:13px;font-weight:700;color:var(--choc);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pitem .st{width:11px;height:11px;border-radius:50%;flex:none}
+.cicloRow{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.cicloRow label{font-size:10px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.5px}
+
+/* inputs */
+input[type=text],select,textarea{font:inherit;font-size:13px;color:var(--choc);background:var(--cream);
+  border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+input[type=text]:focus,select:focus,textarea:focus{outline:0;border-color:var(--goldlt);background:#fffdf7}
+textarea{resize:vertical;min-height:64px;line-height:1.5}
+select{cursor:pointer;font-weight:700}
+.fl{font-size:10px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.frow{display:grid;gap:12px;margin-bottom:12px}
+.frow.c3{grid-template-columns:2fr 1fr 1.3fr}
+.frow.c3b{grid-template-columns:1fr 1fr 1fr}
+.frow.c2{grid-template-columns:1fr 1fr}
+
+/* selects de pílula coloridos */
+.selpill{border-radius:20px;text-align:center;font-weight:800}
+.sg-EM_ANDAMENTO{background:var(--goldlt);color:#2A1B12;border-color:var(--goldlt)}
+.sg-CONCLUÍDO{background:var(--g);color:#fff;border-color:var(--g)}
+.sg-PAUSADO{background:var(--n);color:#2A1B12;border-color:var(--n)}
+.sg-EM_TESTE{background:var(--ab);color:var(--ad);border-color:#E8CF93}
+.sg-PLANEJAMENTO{background:var(--cream2);color:var(--choc);border-color:var(--line)}
+.sg-CANCELADO{background:var(--r);color:#fff;border-color:var(--r)}
+
+/* tabela de etapas */
+table.et{width:100%;border-collapse:separate;border-spacing:0 6px}
+.et th{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--choc3);text-align:left;padding:0 6px}
+.et th.c{text-align:center}
+.et td{padding:0 4px;vertical-align:middle}
+.et input[type=text]{padding:7px 9px;font-size:12.5px}
+.et .num{width:26px;text-align:center;font-size:11px;font-weight:800;color:var(--mute)}
+
+/* BOTÃO DE STATUS — o coração do pedido */
+.stbtn{width:38px;height:38px;border-radius:50%;border:2.5px solid var(--n);background:#fff;color:var(--nd);
+  font-size:16px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  transition:transform .07s, background .12s, border-color .12s;user-select:none}
+.stbtn:hover{transform:scale(1.14);box-shadow:0 2px 8px rgba(62,36,25,.25)}
+.stbtn:active{transform:scale(.92)}
+.stbtn.g{background:var(--g);border-color:var(--gd);color:#fff}
+.stbtn.a{background:var(--a);border-color:#C98F1E;color:#fff}
+.stbtn.r{background:var(--r);border-color:var(--rd);color:#fff}
+.rowdel{border:0;background:transparent;color:#C0897F;font-size:17px;cursor:pointer;font-weight:900;padding:2px 6px}
+.rowdel:hover{color:var(--r)}
+.addrow{margin-top:8px}
+
+/* legenda clicável */
+.leg{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:11.5px;font-weight:700;color:var(--choc2);margin-top:10px}
+.leg span{display:flex;align-items:center;gap:5px}
+.leg i{width:12px;height:12px;border-radius:50%;display:inline-block;font-style:normal}
+
+/* dropzone da imagem */
+.drop{border:2px dashed var(--goldlt);border-radius:12px;background:var(--cream);min-height:210px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  text-align:center;padding:16px;transition:background .15s}
+.drop:hover,.drop.over{background:var(--cream2)}
+.drop .ic{width:56px;height:56px;border-radius:14px;background:var(--goldlt);position:relative}
+.drop .ic:before{content:"";position:absolute;left:12px;top:11px;width:11px;height:11px;border-radius:50%;background:#fff}
+.drop .ic:after{content:"";position:absolute;left:11px;bottom:10px;border-left:17px solid transparent;
+  border-right:17px solid transparent;border-bottom:22px solid #fff}
+.drop b{color:var(--choc);font-size:13.5px}
+.drop small{color:var(--mute);font-style:italic}
+.drop img{max-width:100%;max-height:260px;border-radius:8px}
+.imgtools{display:flex;gap:8px;margin-top:8px;justify-content:center}
+
+/* dica */
+.tip{background:var(--cream);border-left:4px solid var(--goldlt);border-radius:8px;padding:9px 13px;
+  font-size:12px;color:var(--choc2);margin:0 auto 14px;max-width:1500px}
+.wrap2{max-width:1500px;margin:0 auto;padding:0 18px}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--choc);color:#F4ECD8;
+  padding:11px 20px;border-radius:26px;font-size:13px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.3);
+  opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
+.toast.show{opacity:1}
+@media(max-width:980px){.wrap{flex-direction:column}.side{width:100%;position:static}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Divine</div>
+  <div>
+    <h1>Editor de Acompanhamento de Projetos</h1>
+    <div class="sub">P&D · preencha os campos, clique nas bolinhas de status e baixe o PowerPoint pronto</div>
+  </div>
+  <span class="spacer"></span>
+  <button class="btn ghost" onclick="saveJSON()">💾 Salvar dados</button>
+  <button class="btn ghost" onclick="document.getElementById('imp').click()">📂 Carregar dados</button>
+  <input id="imp" type="file" accept="application/json" style="display:none" onchange="loadJSON(event)">
+  <button class="btn gold" onclick="baixarPPTX()">⬇ Baixar PowerPoint (.pptx)</button>
+</div>
+
+<div class="wrap2" style="margin-top:14px">
+  <div class="tip">💡 <b>Como funciona:</b> tudo o que você digita é salvo automaticamente neste navegador. Clique numa bolinha de
+  status para alternar: ⚪ não iniciado → 🟡 em andamento → 🟢 concluído → 🔴 bloqueado. Ao final, <b>Baixar PowerPoint</b> gera a
+  apresentação completa (capa + 2 slides por projeto) já no padrão Divine. Use <b>Salvar dados</b> para guardar um arquivo de
+  backup ou passar para um colega.</div>
+</div>
+
+<div class="wrap">
+  <!-- ============ SIDEBAR ============ -->
+  <div class="side">
+    <div class="panel">
+      <div class="ph"><b>🍫 Projetos</b></div>
+      <div class="pb">
+        <div class="plist" id="plist"></div>
+        <button class="btn gold sm" style="width:100%" onclick="addProject()">+ Adicionar projeto</button>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn sm" style="flex:1" onclick="dupProject()">Duplicar</button>
+          <button class="btn danger sm" style="flex:1" onclick="delProject()">Excluir</button>
+        </div>
+        <div class="cicloRow">
+          <label>Ciclo da reunião (capa)</label>
+          <input type="text" id="ciclo" oninput="state.ciclo=this.value;save()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONTEÚDO ============ -->
+  <div class="main">
+    <!-- SLIDE 1 -->
+    <div class="panel">
+      <div class="ph"><b>📋 Slide 1 · Acompanhamento do Projeto</b></div>
+      <div class="pb">
+        <div class="frow c3">
+          <div><label class="fl">Nome do projeto</label><input type="text" id="f_nome" oninput="P().nome=this.value;save();renderList()"></div>
+          <div><label class="fl">Prioridade</label>
+            <select id="f_pri" class="selpill" onchange="P().prioridade=this.value;save()">
+              <option>ALTA</option><option>MÉDIA</option><option>BAIXA</option><option>—</option>
+            </select></div>
+          <div><label class="fl">Status geral</label>
+            <select id="f_sg" class="selpill" onchange="P().statusGeral=this.value;save();paintSG()">
+              <option>EM ANDAMENTO</option><option>CONCLUÍDO</option><option>PAUSADO</option>
+              <option>EM TESTE</option><option>PLANEJAMENTO</option><option>CANCELADO</option>
+            </select></div>
+        </div>
+        <div class="frow c3b">
+          <div><label class="fl">Responsável</label><input type="text" id="f_resp" oninput="P().resp=this.value;save()"></div>
+          <div><label class="fl">Data de abertura</label><input type="text" id="f_ab" oninput="P().abertura=this.value;save()"></div>
+          <div><label class="fl">Atualizado em</label><input type="text" id="f_at" oninput="P().atualizado=this.value;save()"></div>
+        </div>
+
+        <label class="fl" style="margin-top:6px">Status detalhado — clique na bolinha para mudar o status</label>
+        <table class="et">
+          <thead><tr><th></th><th>Etapa</th><th class="c">Status</th><th>Responsável</th><th>Previsto</th><th></th></tr></thead>
+          <tbody id="etapas"></tbody>
+        </table>
+        <button class="btn sm addrow" onclick="addEtapa()">+ Adicionar etapa</button>
+        <div class="leg">
+          <span><i style="background:var(--g)"></i>Concluído</span>
+          <span><i style="background:var(--a)"></i>Em andamento</span>
+          <span><i style="background:#fff;border:2px solid var(--n)"></i>Não iniciado</span>
+          <span><i style="background:var(--r)"></i>Bloqueado</span>
+        </div>
+
+        <div class="frow c2" style="margin-top:14px">
+          <div><label class="fl">⚠ Pendências (uma por linha)</label>
+            <textarea id="f_pend" oninput="P().pend=linhas(this.value);save()"></textarea></div>
+          <div><label class="fl">→ Próximas ações (uma por linha)</label>
+            <textarea id="f_acoes" oninput="P().acoes=linhas(this.value);save()"></textarea></div>
+        </div>
+        <div><label class="fl">✎ Observações e comentários</label>
+          <textarea id="f_obs" oninput="P().obs=this.value;save()"></textarea></div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="panel">
+      <div class="ph"><b>🖼 Slide 2 · Imagens do Produto & Orçamento</b></div>
+      <div class="pb">
+        <div class="frow c2">
+          <div>
+            <label class="fl">Imagem do produto</label>
+            <div class="drop" id="drop" onclick="document.getElementById('fimg').click()">
+              <div class="ic" id="dropIc"></div>
+              <b id="dropTxt">Arraste a foto aqui ou clique para escolher</b>
+              <small>(a imagem entra no slide, na área tracejada)</small>
+            </div>
+            <input id="fimg" type="file" accept="image/*" style="display:none" onchange="pickImg(event)">
+            <div class="imgtools" id="imgtools" style="display:none">
+              <button class="btn sm" onclick="document.getElementById('fimg').click()">Trocar imagem</button>
+              <button class="btn danger sm" onclick="rmImg()">Remover</button>
+            </div>
+          </div>
+          <div>
+            <div style="margin-bottom:10px"><label class="fl">Custo estimado</label><input type="text" id="o_est" placeholder="R$ —" oninput="P().orc.estimado=this.value;save()"></div>
+            <div style="margin-bottom:10px"><label class="fl">Custo real</label><input type="text" id="o_real" placeholder="R$ —" oninput="P().orc.real=this.value;save()"></div>
+            <div style="margin-bottom:10px"><label class="fl">Fornecedor(es)</label><input type="text" id="o_forn" placeholder="—" oninput="P().orc.fornecedor=this.value;save()"></div>
+            <div style="margin-bottom:10px"><label class="fl">Aprovação</label><input type="text" id="o_apr" placeholder="—" oninput="P().orc.aprovacao=this.value;save()"></div>
+            <div><label class="fl">Observações sobre o orçamento</label>
+              <textarea id="o_obs" oninput="P().orc.obs=this.value;save()"></textarea></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!--PPTXGEN-->
+<!--EXPORT-->
+<script>
+/* ================= estado ================= */
+const KEY = "divine_editor_v1";
+const ORDER = ["n", "a", "g", "r"];
+const SYM = { n: "", a: "◐", g: "✓", r: "!" };
+const ETAPAS_PADRAO = ["1. Pesquisa de mercado","2. Desenv. da formulação","3. Custo","4. Homologação",
+  "5. Volume (comercial)","6. Engenharias e FTs","7. Criação da arte e etiquetas","8. Tabela comercial",
+  "9. Comunicado vendedores","10. Lançamento"];
+
+function novoProjeto(nome) {
+  return {
+    nome: nome || "Novo projeto", prioridade: "—", statusGeral: "PLANEJAMENTO",
+    resp: "", abertura: "", atualizado: "",
+    etapas: ETAPAS_PADRAO.map(n => ({ n, st: "n", resp: "", prev: "" })),
+    pend: [], acoes: [], obs: "",
+    orc: { estimado: "", real: "", fornecedor: "", aprovacao: "", obs: "" },
+    img: null,
+  };
+}
+const DEFAULT = { ciclo: "Junho / 2026", sel: 0, projects: [(() => {
+  const p = novoProjeto("Barrinhas FOR FIT");
+  p.prioridade = "ALTA"; p.statusGeral = "EM ANDAMENTO";
+  p.resp = "Paloma e Isabele"; p.abertura = "15/06/2026"; p.atualizado = "30/06/2026";
+  p.etapas[0] = { n: ETAPAS_PADRAO[0], st: "g", resp: "Trade", prev: "20/06" };
+  p.etapas[1] = { n: ETAPAS_PADRAO[1], st: "a", resp: "P&D", prev: "10/07" };
+  p.etapas[2].resp = "Camila"; p.etapas[3].resp = "CQ"; p.etapas[4].resp = "Mateus";
+  p.etapas[5] = { n: ETAPAS_PADRAO[5], st: "a", resp: "P&D", prev: "15/07" };
+  p.etapas[6].resp = "Marketing"; p.etapas[7].resp = "P&D"; p.etapas[8].resp = "Marketing"; p.etapas[9].resp = "Marketing";
+  p.pend = ["Aguardar fechamento de formulação;", "Moinho de rolos;"];
+  p.acoes = ["Concluir ajustes no moinho de rolos;", "Fechar formulações;"];
+  p.obs = "Projeto dentro do cronograma.";
+  p.orc.obs = "A definir junto ao fechamento de formulação e custo (etapas 2 e 3).";
+  return p;
+})()] };
+
+let state = load();
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.projects && s.projects.length) return s; } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function P() { return state.projects[state.sel]; }
+function linhas(v) { return v.split("\n").map(s => s.trim()).filter(Boolean); }
+function esc(v) { return (v || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+
+/* ================= sidebar ================= */
+const SGDOT = { "EM ANDAMENTO": "var(--a)", "CONCLUÍDO": "var(--g)", "PAUSADO": "var(--n)",
+  "EM TESTE": "var(--goldlt)", "PLANEJAMENTO": "var(--n)", "CANCELADO": "var(--r)" };
+function renderList() {
+  const el = document.getElementById("plist");
+  el.innerHTML = state.projects.map((p, i) =>
+    `<div class="pitem ${i === state.sel ? "sel" : ""}" onclick="selProject(${i})">
+       <span class="st" style="background:${SGDOT[p.statusGeral] || "var(--n)"}"></span>
+       <span class="pname">${esc(p.nome) || "(sem nome)"}</span></div>`).join("");
+}
+function selProject(i) { state.sel = i; save(); renderAll(); }
+function addProject() { state.projects.push(novoProjeto()); state.sel = state.projects.length - 1; save(); renderAll(); }
+function dupProject() {
+  const c = JSON.parse(JSON.stringify(P())); c.nome += " (cópia)";
+  state.projects.splice(state.sel + 1, 0, c); state.sel++; save(); renderAll();
+}
+function delProject() {
+  if (state.projects.length === 1) { toast("Deixe ao menos um projeto."); return; }
+  if (!confirm(`Excluir o projeto “${P().nome}”?`)) return;
+  state.projects.splice(state.sel, 1); state.sel = Math.max(0, state.sel - 1); save(); renderAll();
+}
+
+/* ================= formulário ================= */
+function paintSG() {
+  const sel = document.getElementById("f_sg");
+  sel.className = "selpill sg-" + sel.value.replace(/ /g, "_");
+  renderList();
+}
+function renderForm() {
+  const p = P();
+  document.getElementById("ciclo").value = state.ciclo || "";
+  document.getElementById("f_nome").value = p.nome || "";
+  document.getElementById("f_pri").value = p.prioridade || "—";
+  document.getElementById("f_sg").value = p.statusGeral || "PLANEJAMENTO";
+  paintSG();
+  document.getElementById("f_resp").value = p.resp || "";
+  document.getElementById("f_ab").value = p.abertura || "";
+  document.getElementById("f_at").value = p.atualizado || "";
+  document.getElementById("f_pend").value = (p.pend || []).join("\n");
+  document.getElementById("f_acoes").value = (p.acoes || []).join("\n");
+  document.getElementById("f_obs").value = p.obs || "";
+  document.getElementById("o_est").value = p.orc.estimado || "";
+  document.getElementById("o_real").value = p.orc.real || "";
+  document.getElementById("o_forn").value = p.orc.fornecedor || "";
+  document.getElementById("o_apr").value = p.orc.aprovacao || "";
+  document.getElementById("o_obs").value = p.orc.obs || "";
+  renderEtapas();
+  renderImg();
+}
+function renderEtapas() {
+  const p = P();
+  document.getElementById("etapas").innerHTML = p.etapas.map((e, i) => `
+    <tr>
+      <td class="num">${i + 1}</td>
+      <td><input type="text" value="${esc(e.n)}" oninput="P().etapas[${i}].n=this.value;save()"></td>
+      <td style="text-align:center">
+        <button class="stbtn ${e.st}" title="Clique para mudar o status" onclick="cycleSt(${i})">${SYM[e.st]}</button></td>
+      <td><input type="text" value="${esc(e.resp)}" placeholder="—" oninput="P().etapas[${i}].resp=this.value;save()"></td>
+      <td style="width:110px"><input type="text" value="${esc(e.prev)}" placeholder="—" oninput="P().etapas[${i}].prev=this.value;save()"></td>
+      <td><button class="rowdel" title="Remover etapa" onclick="delEtapa(${i})">×</button></td>
+    </tr>`).join("");
+}
+function cycleSt(i) {
+  const e = P().etapas[i];
+  e.st = ORDER[(ORDER.indexOf(e.st) + 1) % ORDER.length];
+  save(); renderEtapas();
+}
+function addEtapa() { P().etapas.push({ n: "", st: "n", resp: "", prev: "" }); save(); renderEtapas(); }
+function delEtapa(i) { P().etapas.splice(i, 1); save(); renderEtapas(); }
+
+/* ================= imagem ================= */
+function renderImg() {
+  const p = P(), d = document.getElementById("drop");
+  const ic = document.getElementById("dropIc"), tx = document.getElementById("dropTxt");
+  const old = d.querySelector("img"); if (old) old.remove();
+  if (p.img) {
+    ic.style.display = "none"; tx.style.display = "none";
+    d.querySelector("small").style.display = "none";
+    const im = document.createElement("img"); im.src = p.img; d.appendChild(im);
+    document.getElementById("imgtools").style.display = "flex";
+  } else {
+    ic.style.display = ""; tx.style.display = "";
+    d.querySelector("small").style.display = "";
+    document.getElementById("imgtools").style.display = "none";
+  }
+}
+function fileToData(f) {
+  if (!f || !f.type.startsWith("image/")) return;
+  const rd = new FileReader();
+  rd.onload = e => { P().img = e.target.result; save(); renderImg(); };
+  rd.readAsDataURL(f);
+}
+function pickImg(ev) { fileToData(ev.target.files[0]); ev.target.value = ""; }
+function rmImg() { P().img = null; save(); renderImg(); }
+const drop = document.getElementById("drop");
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); fileToData(e.dataTransfer.files[0]); });
+
+/* ================= arquivo / export ================= */
+function saveJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "divine_projetos_dados.json"; a.click();
+  toast("Dados salvos — guarde o arquivo como backup.");
+}
+function loadJSON(ev) {
+  const f = ev.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = e => {
+    try {
+      const s = JSON.parse(e.target.result);
+      if (s.projects && s.projects.length) { s.sel = 0; state = s; save(); renderAll(); toast("Dados carregados!"); }
+      else alert("Arquivo inválido.");
+    } catch (err) { alert("Não consegui ler o arquivo."); }
+  };
+  rd.readAsText(f); ev.target.value = "";
+}
+function baixarPPTX() {
+  try {
+    const pptx = DivineExport.build(PptxGenJS, state);
+    pptx.writeFile({ fileName: "Divine_Acompanhamento_Projetos.pptx" })
+      .then(() => toast("PowerPoint gerado! Veja a pasta de downloads."));
+  } catch (e) { alert("Erro ao gerar o PowerPoint: " + e.message); }
+}
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+/* ================= boot ================= */
+function renderAll() { renderList(); renderForm(); }
+renderAll();
+</script>
+</body>
+</html>
