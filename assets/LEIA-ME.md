@@ -26,3 +26,5 @@ Depois avise o Claude — ele roda `editor/processa_capa.py`, que recorta em
 16:9, espelha (chocolates para a direita), embute um degradê para o texto
 ficar legível e aplica a capa na apresentação. A capa entra só no slide de
 capa; os slides de conteúdo seguem limpos para facilitar a leitura.
+
+<!-- redeploy 20260703T182208Z -->
