@@ -2,11 +2,12 @@
    Funciona no navegador (PptxGenJS global) e no Node (require). */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) {
-    let logo = null;
+    let logo = null, capa = null;
     try { logo = require("./divine_logo.js"); } catch (e) {}
-    module.exports = factory(logo);
-  } else root.DivineExport = factory(root.DivineLogo || null);
-})(typeof self !== "undefined" ? self : this, function (LOGO) {
+    try { capa = require("./divine_capa.js"); } catch (e) {}
+    module.exports = factory(logo, capa);
+  } else root.DivineExport = factory(root.DivineLogo || null, root.DivineCapa || null);
+})(typeof self !== "undefined" ? self : this, function (LOGO, CAPA) {
 
   const C = {
     CHOC: "3E2419", CHOC2: "5A3A2A", CHOC3: "7A5238", RED: "A83224",
@@ -258,8 +259,12 @@
   function slideCapa(pptx, ciclo) {
     const s = pptx.addSlide();
     s.background = { color: C.CHOC };
-    s.addShape("ellipse", { x: 10.4, y: -1.6, w: 4.6, h: 4.6, fill: { color: "4A2E1E" }, line: NOLINE });
-    s.addShape("ellipse", { x: 11.5, y: 5.3, w: 3.4, h: 3.4, fill: { color: "472B1C" }, line: NOLINE });
+    if (CAPA && CAPA.BG) {
+      s.addImage({ data: CAPA.BG, x: 0, y: 0, w: 13.333, h: 7.5 });
+    } else {
+      s.addShape("ellipse", { x: 10.4, y: -1.6, w: 4.6, h: 4.6, fill: { color: "4A2E1E" }, line: NOLINE });
+      s.addShape("ellipse", { x: 11.5, y: 5.3, w: 3.4, h: 3.4, fill: { color: "472B1C" }, line: NOLINE });
+    }
     s.addShape("rect", { x: 0, y: 7.34, w: 13.333, h: 0.16, fill: { color: C.GOLD }, line: NOLINE });
     s.addText("P & D   ·   P E S Q U I S A   &   D E S E N V O L V I M E N T O", { x: 0.95, y: 1.55, w: 10, h: 0.35, fontSize: 12, bold: true, color: C.GOLDLT, fontFace: FONT, margin: 0 });
     s.addText("Acompanhamento\nde Projetos", { x: 0.92, y: 2.0, w: 11, h: 1.9, fontSize: 45, bold: true, color: C.WHITE, fontFace: FONT, margin: 0, valign: "top" });

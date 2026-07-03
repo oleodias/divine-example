@@ -210,8 +210,12 @@ def bullets(s, x, y, w, h, items, color=CHOC2, size=10.5):
 # SLIDE 1 — CAPA
 # ============================================================
 s = new_slide(CHOC)
-shape(s, MSO_SHAPE.OVAL, 10.4, -1.6, 4.6, 4.6, fill=RGBColor(0x4A, 0x2E, 0x1E))
-shape(s, MSO_SHAPE.OVAL, 11.5, 5.3, 3.4, 3.4, fill=RGBColor(0x47, 0x2B, 0x1C))
+CAPA_BG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "capa_bg.jpg")
+if os.path.exists(CAPA_BG):
+    s.shapes.add_picture(CAPA_BG, Inches(0), Inches(0), width=Inches(13.333), height=Inches(7.5))
+else:
+    shape(s, MSO_SHAPE.OVAL, 10.4, -1.6, 4.6, 4.6, fill=RGBColor(0x4A, 0x2E, 0x1E))
+    shape(s, MSO_SHAPE.OVAL, 11.5, 5.3, 3.4, 3.4, fill=RGBColor(0x47, 0x2B, 0x1C))
 rect(s, 0, 7.34, 13.333, 0.16, GOLD)
 
 text(s, 0.95, 1.55, 10.0, 0.35, [[("P & D   ·   P E S Q U I S A   &   D E S E N V O L V I M E N T O", 12, True, GOLDLT)]])
