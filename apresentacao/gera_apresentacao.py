@@ -225,8 +225,10 @@ p = pill(s, 0.95, 5.0, 3.3, 0.52, None, "Reunião  ·  Junho / 2026", RGBColor(0
 p.line.color.rgb = GOLD; p.line.width = Pt(1.25)
 
 if HAS_LOGO:
-    s.shapes.add_picture(LOGO_WM, Inches(0.92), Inches(5.85), height=Inches(1.0))
-    text(s, 0.98, 6.98, 5.0, 0.3, [[("C H O C O L A T E   D E   V E R D A D E", 9.5, True, CREAMTXT)]], wrap=False)
+    _pic = s.shapes.add_picture(LOGO_WM, Inches(0.92), Inches(5.85), height=Inches(1.0))
+    text(s, 0.92, 6.95, _pic.width / 914400, 0.3,
+         [[("C H O C O L A T E   D E   V E R D A D E", 9.5, True, CREAMTXT)]],
+         align=PP_ALIGN.CENTER, wrap=False)
 else:
     text(s, 0.92, 6.05, 4.0, 0.85, [[("Divine", 38, True, GOLDLT, True, SCRIPT)]], wrap=False)
     text(s, 0.98, 6.92, 5.0, 0.3, [[("C H O C O L A T E   D E   V E R D A D E", 9.5, True, CREAMTXT)]], wrap=False)
