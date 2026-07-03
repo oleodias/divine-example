@@ -9,6 +9,7 @@ Gera um .pptx 16:9 totalmente editável:
   5. Modelo em branco  — Slide "Imagens & Orçamento"
   6. Como usar + legenda
 """
+import os
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
@@ -39,6 +40,9 @@ N  = RGBColor(0xCD, 0xBD, 0xA4); ND = RGBColor(0x8A, 0x7A, 0x66)
 
 FONT   = "Segoe UI"
 SCRIPT = "Segoe Script"
+
+LOGO_WM = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo_wordmark.png")
+HAS_LOGO = os.path.exists(LOGO_WM)
 
 SW, SH = Inches(13.333), Inches(7.5)
 
@@ -135,6 +139,9 @@ def status_dot(s, cx, cy, st, d=0.24):
     return o
 
 def logo_block(s, x=0.30, y=0.17, sz=0.62):
+    if HAS_LOGO:
+        pic = s.shapes.add_picture(LOGO_WM, Inches(x + 0.02), Inches(0.22), height=Inches(0.54))
+        return x + 0.02 + pic.width / 914400 + 0.18
     lg = shape(s, MSO_SHAPE.ROUNDED_RECTANGLE, x, y, sz, sz, fill=RED_LOGO, radius=0.22)
     tf = lg.text_frame
     tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
@@ -143,13 +150,14 @@ def logo_block(s, x=0.30, y=0.17, sz=0.62):
     r = p.add_run(); r.text = "Divine"
     r.font.size = Pt(10); r.font.bold = True; r.font.italic = True
     r.font.color.rgb = GOLDLT; r.font.name = SCRIPT
+    return 1.08
 
 def header(s, eyebrow, title, prioridade=None, status_geral=None, status_fill=GOLDLT, status_tc=INK):
     rect(s, 0, 0, 13.333, 0.98, CHOC)
     rect(s, 0, 0.98, 13.333, 0.028, GOLD)          # filete dourado
-    logo_block(s)
-    text(s, 1.08, 0.155, 8.0, 0.25, [[(eyebrow, 10, True, GOLDLT)]])
-    text(s, 1.06, 0.375, 8.0, 0.55, [[(title, 25, True, WHITE)]])
+    tx0 = logo_block(s)
+    text(s, tx0, 0.155, 8.0, 0.25, [[(eyebrow, 10, True, GOLDLT)]])
+    text(s, tx0 - 0.02, 0.375, 8.0, 0.55, [[(title, 25, True, WHITE)]])
     if prioridade is not None:
         text(s, 9.35, 0.14, 1.55, 0.2, [[("PRIORIDADE", 8, True, CREAMTXT)]], align=PP_ALIGN.CENTER)
         pill(s, 9.35, 0.40, 1.55, 0.40, WHITE, prioridade, CHOC, size=11.5)
@@ -167,8 +175,12 @@ def subband(s, resp, abertura, atualizado):
 
 def footer(s, legend=True):
     rect(s, 0, 7.18, 13.333, 0.32, CHOC)
-    text(s, 12.15, 7.215, 0.95, 0.26, [[("Divine", 11, True, GOLDLT, True, SCRIPT)]],
-         align=PP_ALIGN.RIGHT, wrap=False)
+    if HAS_LOGO:
+        pic = s.shapes.add_picture(LOGO_WM, Inches(12.0), Inches(7.23), height=Inches(0.22))
+        pic.left = Inches(12.95) - pic.width
+    else:
+        text(s, 12.15, 7.215, 0.95, 0.26, [[("Divine", 11, True, GOLDLT, True, SCRIPT)]],
+             align=PP_ALIGN.RIGHT, wrap=False)
     if legend:
         items = [(G, "Concluído"), (A, "Em andamento"), (None, "Não iniciado"), (R, "Bloqueado")]
         x = 0.38
@@ -212,8 +224,12 @@ text(s, 0.95, 4.05, 8.6, 0.75, [[
 p = pill(s, 0.95, 5.0, 3.3, 0.52, None, "Reunião  ·  Junho / 2026", RGBColor(0xF4, 0xE6, 0xCC), size=13)
 p.line.color.rgb = GOLD; p.line.width = Pt(1.25)
 
-text(s, 0.92, 6.05, 4.0, 0.85, [[("Divine", 38, True, GOLDLT, True, SCRIPT)]], wrap=False)
-text(s, 0.98, 6.92, 5.0, 0.3, [[("C H O C O L A T E   D E   V E R D A D E", 9.5, True, CREAMTXT)]], wrap=False)
+if HAS_LOGO:
+    s.shapes.add_picture(LOGO_WM, Inches(0.92), Inches(5.85), height=Inches(1.0))
+    text(s, 0.98, 6.98, 5.0, 0.3, [[("C H O C O L A T E   D E   V E R D A D E", 9.5, True, CREAMTXT)]], wrap=False)
+else:
+    text(s, 0.92, 6.05, 4.0, 0.85, [[("Divine", 38, True, GOLDLT, True, SCRIPT)]], wrap=False)
+    text(s, 0.98, 6.92, 5.0, 0.3, [[("C H O C O L A T E   D E   V E R D A D E", 9.5, True, CREAMTXT)]], wrap=False)
 
 # ============================================================
 # builders dos 2 slides de projeto

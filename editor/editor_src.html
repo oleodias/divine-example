@@ -134,7 +134,8 @@ table.et{width:100%;border-collapse:collapse}
 <body>
 
 <div class="topbar"><div class="topin">
-  <div class="logo">Divine</div>
+  <div class="logo" id="logoFallback">Divine</div>
+  <img id="logoTop" alt="Divine" style="display:none;height:42px;width:auto">
   <div class="tt">
     <h1>Acompanhamento de Projetos</h1>
     <div class="sub">Divine Chocolates · Pesquisa & Desenvolvimento</div>
@@ -265,7 +266,8 @@ table.et{width:100%;border-collapse:collapse}
 
 <div class="foot">
   <span>Divine Chocolates · P&D — Acompanhamento de Projetos</span>
-  <span class="wm">Divine</span>
+  <span class="wm" id="wmFallback">Divine</span>
+  <img id="logoFoot" alt="Divine" style="display:none;height:34px;width:auto">
 </div>
 <div class="toast" id="toast"></div>
 
@@ -490,7 +492,16 @@ function toast(msg) {
 }
 
 /* ================= boot ================= */
+function aplicaLogo() {
+  if (typeof DivineLogo === "undefined" || !DivineLogo || !DivineLogo.WORDMARK) return;
+  const top = document.getElementById("logoTop"), foot = document.getElementById("logoFoot");
+  top.src = DivineLogo.WORDMARK; top.style.display = "block";
+  document.getElementById("logoFallback").style.display = "none";
+  foot.src = DivineLogo.FULL || DivineLogo.WORDMARK; foot.style.display = "block";
+  document.getElementById("wmFallback").style.display = "none";
+}
 function renderAll() { renderList(); renderForm(); }
+aplicaLogo();
 renderAll();
 </script>
 </body>

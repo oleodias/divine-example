@@ -4,7 +4,11 @@
 const fs = require("fs");
 let html = fs.readFileSync("editor_src.html", "utf8");
 const bundle = fs.readFileSync("node_modules/pptxgenjs/dist/pptxgen.bundle.js", "utf8");
-const exp = fs.readFileSync("divine_export.js", "utf8");
+let exp = fs.readFileSync("divine_export.js", "utf8");
+if (fs.existsSync("divine_logo.js")) {                      // logo oficial, se já processada
+  exp = fs.readFileSync("divine_logo.js", "utf8") + "\n" + exp;
+  console.log("logo oficial embutida");
+}
 html = html.replace("<!--PPTXGEN-->", () => "<script>" + bundle + "</" + "script>");
 html = html.replace("<!--EXPORT-->", () => "<script>" + exp + "</" + "script>");
 fs.writeFileSync("Editor_Divine.html", html);
