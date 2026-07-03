@@ -89,9 +89,11 @@ def hexes(im):
 def datauri(im, width):
     im = im.copy()
     im.thumbnail((width, 10000))
+    sz = im.size
+    q = im.quantize(colors=256, method=Image.FASTOCTREE)   # PNG-8 c/ alfa: ~70% menor
     buf = io.BytesIO()
-    im.save(buf, "PNG", optimize=True)
-    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode(), im.size
+    q.save(buf, "PNG", optimize=True)
+    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode(), sz
 
 def main():
     src, repo = sys.argv[1], sys.argv[2]
