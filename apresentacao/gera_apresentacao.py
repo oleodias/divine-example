@@ -278,6 +278,14 @@ def slide_acompanhamento(nome, prioridade, status_geral, status_fill, status_tc,
     text(s, 7.46, 5.85, 5.28, 1.05, [[(observ, 10.5, False, CHOC2, True)]], line_spacing=1.2)
 
     footer(s)
+
+    # ---- paleta de carimbos (fora do slide: aparece só na edição, nunca na apresentação) ----
+    card(s, 13.55, 1.62, 1.55, 3.1, fill=WHITE)
+    text(s, 13.67, 1.74, 1.35, 0.5, [[("PALETA", 9, True, CHOC)], [("copie e cole ↓", 8, False, MUTE, True)]])
+    for i, (st, lab) in enumerate([('g', "Concluído"), ('a', "Andamento"), ('r', "Bloqueado"), ('n', "Não inic.")]):
+        yy = 2.35 + i * 0.56
+        status_dot(s, 13.85, yy + 0.12, st, d=0.235)
+        text(s, 14.05, yy + 0.02, 1.0, 0.22, [[(lab, 8, False, CHOC2)]], wrap=False)
     return s
 
 def slide_imagens_orcamento(nome, orc):
