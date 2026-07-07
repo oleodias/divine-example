@@ -46,6 +46,10 @@ HAS_LOGO = os.path.exists(LOGO_WM)
 HEADER_BG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "header_bg.jpg")
 HAS_HEADER = os.path.exists(HEADER_BG)
 
+import anim_lib
+def _ids(s): return {sp.shape_id for sp in s.shapes}
+def _grp(s, before): return sorted(_ids(s) - before)   # ids criados desde o snapshot
+
 SW, SH = Inches(13.333), Inches(7.5)
 
 prs = Presentation()
@@ -223,16 +227,22 @@ else:
     shape(s, MSO_SHAPE.OVAL, 11.5, 5.3, 3.4, 3.4, fill=RGBColor(0x47, 0x2B, 0x1C))
 rect(s, 0, 7.34, 13.333, 0.16, GOLD)
 
+# capa cinematográfica: cada elemento entra em sequência (fade)
+_cg = []
+_b = _ids(s)
 text(s, 0.95, 1.55, 10.0, 0.35, [[("P & D   ·   P E S Q U I S A   &   D E S E N V O L V I M E N T O", 12, True, GOLDLT)]])
+_cg.append(_grp(s, _b)); _b = _ids(s)
 text(s, 0.92, 2.0, 11.0, 1.9, [
     [("Acompanhamento", 45, True, WHITE)],
     [("de Projetos", 45, True, WHITE)]], line_spacing=1.0)
+_cg.append(_grp(s, _b)); _b = _ids(s)
 text(s, 0.95, 4.05, 8.6, 0.75, [[
     ("Status do portfólio de novos produtos — andamento, pendências e próximos passos, projeto a projeto.",
      15, False, CREAMTXT)]], line_spacing=1.25)
+_cg.append(_grp(s, _b)); _b = _ids(s)
 p = pill(s, 0.95, 5.0, 3.3, 0.52, None, "Reunião  ·  Junho / 2026", RGBColor(0xF4, 0xE6, 0xCC), size=13)
 p.line.color.rgb = GOLD; p.line.width = Pt(1.25)
-
+_cg.append(_grp(s, _b)); _b = _ids(s)
 if HAS_LOGO:
     _pic = s.shapes.add_picture(LOGO_WM, Inches(0.92), Inches(5.85), height=Inches(1.0))
     text(s, 0.92, 6.95, _pic.width / 914400, 0.3,
@@ -241,6 +251,8 @@ if HAS_LOGO:
 else:
     text(s, 0.92, 6.05, 4.0, 0.85, [[("Divine", 38, True, GOLDLT, True, SCRIPT)]], wrap=False)
     text(s, 0.98, 6.92, 5.0, 0.3, [[("C H O C O L A T E   D E   V E R D A D E", 9.5, True, CREAMTXT)]], wrap=False)
+_cg.append(_grp(s, _b))
+anim_lib.set_entrance(s, _cg)
 
 # ============================================================
 # builders dos 2 slides de projeto
@@ -291,18 +303,24 @@ def slide_acompanhamento(nome, prioridade, status_geral, status_fill, status_tc,
         cell(i + 1, 3, prev, 9.5, False, CHOC2, PP_ALIGN.CENTER, f)
         status_dot(s, tx + col_w[0] + col_w[1] / 2, ty + hdr_h + row_h * i + row_h / 2, st, d=0.235)
 
-    # ---- coluna direita ----
+    # ---- coluna direita (entra em cascata: Pendências -> Ações -> Observações) ----
+    _ag = []
+    _b = _ids(s)
     card(s, 7.10, 1.62, 5.85, 1.66)
     card_header(s, 7.36, 1.83, A, "!", WHITE, "PENDÊNCIAS", AD)
     bullets(s, 7.46, 2.24, 5.28, 0.95, pendencias)
+    _ag.append(_grp(s, _b)); _b = _ids(s)
 
     card(s, 7.10, 3.42, 5.85, 1.66)
     card_header(s, 7.36, 3.63, G, "→", WHITE, "PRÓXIMAS AÇÕES", GD)
     bullets(s, 7.46, 4.04, 5.28, 0.95, acoes)
+    _ag.append(_grp(s, _b)); _b = _ids(s)
 
     card(s, 7.10, 5.22, 5.85, 1.82)
     card_header(s, 7.36, 5.43, GOLDLT, "✎", WHITE, "OBSERVAÇÕES E COMENTÁRIOS", CHOC)
     text(s, 7.46, 5.85, 5.28, 1.05, [[(observ, 10.5, False, CHOC2, True)]], line_spacing=1.2)
+    _ag.append(_grp(s, _b))
+    anim_lib.set_entrance(s, _ag)
 
     footer(s)
 
@@ -319,7 +337,8 @@ def slide_imagens_orcamento(nome, orc):
     s = new_slide()
     header(s, "IMAGENS DO PRODUTO & ORÇAMENTO", nome)
 
-    # ---- área de imagem (tracejada) ----
+    # ---- área de imagem (tracejada) — grupo 1 ----
+    _og = []; _b = _ids(s)
     ph = shape(s, MSO_SHAPE.ROUNDED_RECTANGLE, 0.35, 1.30, 7.55, 5.60,
                fill=WHITE, line=GOLDLT, line_w=1.5, radius=0.03, dash=MSO_LINE.DASH)
     cx = 0.35 + 7.55 / 2
@@ -332,7 +351,8 @@ def slide_imagens_orcamento(nome, orc):
         ("(insira aqui fotos, mockups, protótipos ou capturas de tela)", 10, False, MUTE, True)]],
         align=PP_ALIGN.CENTER)
 
-    # ---- card orçamento ----
+    _og.append(_grp(s, _b)); _b = _ids(s)
+    # ---- card orçamento — grupo 2 ----
     card(s, 8.10, 1.30, 4.90, 5.60)
     card_header(s, 8.36, 1.52, GOLD, "$", WHITE, "ORÇAMENTO", CHOC)
 
@@ -363,6 +383,8 @@ def slide_imagens_orcamento(nome, orc):
     pgh = tf.paragraphs[0]; pgh.alignment = PP_ALIGN.LEFT
     r = pgh.add_run(); r.text = orc["obs"]
     r.font.size = Pt(10); r.font.color.rgb = CHOC2; r.font.name = FONT
+    _og.append(_grp(s, _b))
+    anim_lib.set_entrance(s, _og)
 
     footer(s, legend=False)
     return s
@@ -455,6 +477,10 @@ for lab, f, tc in gerais:
     pill(s, gx, gy, w, 0.38, f, lab, tc, size=9.5)
     gx += w + 0.16
 footer(s, legend=False)
+
+# transição fade suave em todos os slides
+for _sl in prs.slides:
+    anim_lib.add_fade_transition(_sl)
 
 out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Divine_Acompanhamento_Projetos_MODELO.pptx")
 prs.save(out)
