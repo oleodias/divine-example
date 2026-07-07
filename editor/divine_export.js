@@ -50,8 +50,8 @@
     else slide.addText("", Object.assign(base, { fill: { color: C.WHITE }, line: { color: C.N, width: 1.5 } }));
   }
 
-  function iconCircle(slide, x, y, fill, sym) {
-    slide.addText(sym, { shape: "ellipse", x, y, w: 0.26, h: 0.26, fill: { color: fill }, line: NOLINE, color: C.WHITE, fontSize: 12, bold: true, align: "center", valign: "middle", margin: 0, fontFace: FONT });
+  function iconCircle(slide, x, y, fill, sym, name) {
+    slide.addText(sym, { shape: "ellipse", x, y, w: 0.26, h: 0.26, fill: { color: fill }, line: NOLINE, color: C.WHITE, fontSize: 12, bold: true, align: "center", valign: "middle", margin: 0, fontFace: FONT, ...(name ? { objectName: name } : {}) });
   }
 
   function logo(slide) {
@@ -117,17 +117,17 @@
     }
   }
 
-  function card(slide, x, y, w, h) {
-    slide.addShape("roundRect", { rectRadius: 0.09, x, y, w, h, fill: { color: C.WHITE }, line: { color: C.LINE, width: 1 } });
+  function card(slide, x, y, w, h, name) {
+    slide.addShape("roundRect", { rectRadius: 0.09, x, y, w, h, fill: { color: C.WHITE }, line: { color: C.LINE, width: 1 }, ...(name ? { objectName: name } : {}) });
   }
 
-  function bulletText(items, x, y, w, h) {
+  function bulletText(items, x, y, w, h, name) {
     const paras = [];
     (items && items.length ? items : ["—"]).forEach((t, i) => {
       paras.push({ text: "•  ", options: { bold: true, color: C.GOLD, breakLine: false, ...(i ? { softBreakBefore: false } : {}) } });
       paras.push({ text: t, options: { color: C.CHOC2, breakLine: true } });
     });
-    return [paras, { x, y, w, h, fontSize: 10.5, fontFace: FONT, margin: 0, paraSpaceAfter: 5, valign: "top" }];
+    return [paras, { x, y, w, h, fontSize: 10.5, fontFace: FONT, margin: 0, paraSpaceAfter: 5, valign: "top", ...(name ? { objectName: name } : {}) }];
   }
 
   function slideAcompanhamento(pptx, p) {
@@ -166,21 +166,21 @@
       dot(s, tx + colW[0] + colW[1] / 2, ty + hdrH + rowH * i + rowH / 2, e.st, Math.min(0.235, rowH * 0.62));
     });
 
-    // coluna direita
-    card(s, 7.10, 1.62, 5.85, 1.66);
-    iconCircle(s, 7.36, 1.83, C.A, "!");
-    s.addText("PENDÊNCIAS", { x: 7.73, y: 1.845, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.AD, fontFace: FONT, margin: 0 });
-    let [tp, op] = bulletText(p.pend, 7.46, 2.24, 5.28, 0.95); s.addText(tp, op);
+    // coluna direita — entram em cascata (grupos 1, 2, 3)
+    card(s, 7.10, 1.62, 5.85, 1.66, "av|1");
+    iconCircle(s, 7.36, 1.83, C.A, "!", "av|1");
+    s.addText("PENDÊNCIAS", { x: 7.73, y: 1.845, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.AD, fontFace: FONT, margin: 0, objectName: "av|1" });
+    let [tp, op] = bulletText(p.pend, 7.46, 2.24, 5.28, 0.95, "av|1"); s.addText(tp, op);
 
-    card(s, 7.10, 3.42, 5.85, 1.66);
-    iconCircle(s, 7.36, 3.63, C.G, "→");
-    s.addText("PRÓXIMAS AÇÕES", { x: 7.73, y: 3.645, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.GD, fontFace: FONT, margin: 0 });
-    [tp, op] = bulletText(p.acoes, 7.46, 4.04, 5.28, 0.95); s.addText(tp, op);
+    card(s, 7.10, 3.42, 5.85, 1.66, "av|2");
+    iconCircle(s, 7.36, 3.63, C.G, "→", "av|2");
+    s.addText("PRÓXIMAS AÇÕES", { x: 7.73, y: 3.645, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.GD, fontFace: FONT, margin: 0, objectName: "av|2" });
+    [tp, op] = bulletText(p.acoes, 7.46, 4.04, 5.28, 0.95, "av|2"); s.addText(tp, op);
 
-    card(s, 7.10, 5.22, 5.85, 1.82);
-    iconCircle(s, 7.36, 5.43, C.GOLDLT, "✎");
-    s.addText("OBSERVAÇÕES E COMENTÁRIOS", { x: 7.73, y: 5.445, w: 4.7, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0 });
-    s.addText(p.obs || "—", { x: 7.46, y: 5.85, w: 5.28, h: 1.05, fontSize: 10.5, italic: true, color: C.CHOC2, fontFace: FONT, margin: 0, valign: "top" });
+    card(s, 7.10, 5.22, 5.85, 1.82, "av|3");
+    iconCircle(s, 7.36, 5.43, C.GOLDLT, "✎", "av|3");
+    s.addText("OBSERVAÇÕES E COMENTÁRIOS", { x: 7.73, y: 5.445, w: 4.7, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0, objectName: "av|3" });
+    s.addText(p.obs || "—", { x: 7.46, y: 5.85, w: 5.28, h: 1.05, fontSize: 10.5, italic: true, color: C.CHOC2, fontFace: FONT, margin: 0, valign: "top", objectName: "av|3" });
 
     footer(s, true);
   }
@@ -200,10 +200,10 @@
     s.background = { color: C.CREAM };
     header(s, "IMAGENS DO PRODUTO & ORÇAMENTO", p.nome || "[ Nome do Projeto ]");
 
-    // ---- card de imagens (esquerda) ----
-    card(s, 0.35, 1.30, 7.55, 5.60);
-    iconCircle(s, 0.61, 1.52, C.GOLDLT, "◨");
-    s.addText("IMAGENS DO PRODUTO", { x: 0.98, y: 1.535, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0 });
+    // ---- card de imagens (esquerda) — grupo 1 ----
+    card(s, 0.35, 1.30, 7.55, 5.60, "av|1");
+    iconCircle(s, 0.61, 1.52, C.GOLDLT, "◨", "av|1");
+    s.addText("IMAGENS DO PRODUTO", { x: 0.98, y: 1.535, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0, objectName: "av|1" });
 
     const imgs = (p.imgs && p.imgs.length ? p.imgs : (p.img ? [p.img] : [])).slice(0, 6);
     const ax = 0.61, ay = 1.98, aw = 7.03, ah = 4.66, gap = 0.14;
@@ -215,23 +215,23 @@
         const cy = ay + fyr * ah + (fyr ? gap / 2 : 0);
         const cw = fwr * aw - (fxr + fwr < 1 ? gap / 2 : 0) - (fxr ? gap / 2 : 0);
         const ch = fhr * ah - (fyr + fhr < 1 ? gap / 2 : 0) - (fyr ? gap / 2 : 0);
-        s.addShape("roundRect", { rectRadius: 0.06, x: cx, y: cy, w: cw, h: ch, fill: { color: "FDFBF5" }, line: { color: C.LINE, width: 0.75 } });
-        s.addImage({ data: im, x: cx + 0.07, y: cy + 0.07, w: cw - 0.14, h: ch - 0.14, sizing: { type: "contain", w: cw - 0.14, h: ch - 0.14 } });
+        s.addShape("roundRect", { rectRadius: 0.06, x: cx, y: cy, w: cw, h: ch, fill: { color: "FDFBF5" }, line: { color: C.LINE, width: 0.75 }, objectName: "av|1" });
+        s.addImage({ data: im, x: cx + 0.07, y: cy + 0.07, w: cw - 0.14, h: ch - 0.14, sizing: { type: "contain", w: cw - 0.14, h: ch - 0.14 }, objectName: "av|1" });
       });
     } else {
-      s.addShape("roundRect", { rectRadius: 0.10, x: ax, y: ay, w: aw, h: ah, fill: { color: "FDFBF5" }, line: { color: C.GOLDLT, width: 1.25, dashType: "dash" } });
+      s.addShape("roundRect", { rectRadius: 0.10, x: ax, y: ay, w: aw, h: ah, fill: { color: "FDFBF5" }, line: { color: C.GOLDLT, width: 1.25, dashType: "dash" }, objectName: "av|1" });
       const cx = ax + aw / 2;
-      s.addShape("roundRect", { rectRadius: 0.18, x: cx - 0.38, y: 3.35, w: 0.76, h: 0.76, fill: { color: C.GOLDLT }, line: NOLINE });
-      s.addShape("ellipse", { x: cx - 0.21, y: 3.49, w: 0.15, h: 0.15, fill: { color: C.WHITE }, line: NOLINE });
-      s.addShape("triangle", { x: cx - 0.23, y: 3.68, w: 0.46, h: 0.32, fill: { color: C.WHITE }, line: NOLINE });
-      s.addText("Espaço para imagens do produto", { x: ax, y: 4.30, w: aw, h: 0.3, fontSize: 13, bold: true, color: C.CHOC, align: "center", fontFace: FONT, margin: 0 });
-      s.addText("fotos, mockups, protótipos ou capturas de tela — até 6 por projeto", { x: ax, y: 4.62, w: aw, h: 0.28, fontSize: 9.5, italic: true, color: C.MUTE, align: "center", fontFace: FONT, margin: 0 });
+      s.addShape("roundRect", { rectRadius: 0.18, x: cx - 0.38, y: 3.35, w: 0.76, h: 0.76, fill: { color: C.GOLDLT }, line: NOLINE, objectName: "av|1" });
+      s.addShape("ellipse", { x: cx - 0.21, y: 3.49, w: 0.15, h: 0.15, fill: { color: C.WHITE }, line: NOLINE, objectName: "av|1" });
+      s.addShape("triangle", { x: cx - 0.23, y: 3.68, w: 0.46, h: 0.32, fill: { color: C.WHITE }, line: NOLINE, objectName: "av|1" });
+      s.addText("Espaço para imagens do produto", { x: ax, y: 4.30, w: aw, h: 0.3, fontSize: 13, bold: true, color: C.CHOC, align: "center", fontFace: FONT, margin: 0, objectName: "av|1" });
+      s.addText("fotos, mockups, protótipos ou capturas de tela — até 6 por projeto", { x: ax, y: 4.62, w: aw, h: 0.28, fontSize: 9.5, italic: true, color: C.MUTE, align: "center", fontFace: FONT, margin: 0, objectName: "av|1" });
     }
 
-    // ---- card orçamento (direita) ----
-    card(s, 8.10, 1.30, 4.90, 5.60);
-    iconCircle(s, 8.36, 1.52, C.GOLD, "$");
-    s.addText("ORÇAMENTO", { x: 8.73, y: 1.535, w: 3.5, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0 });
+    // ---- card orçamento (direita) — grupo 2 ----
+    card(s, 8.10, 1.30, 4.90, 5.60, "av|2");
+    iconCircle(s, 8.36, 1.52, C.GOLD, "$", "av|2");
+    s.addText("ORÇAMENTO", { x: 8.73, y: 1.535, w: 3.5, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0, objectName: "av|2" });
 
     const o = p.orc || {};
     const fx = 8.38, fw = 4.34;
@@ -240,22 +240,22 @@
     [["CUSTO ESTIMADO", o.estimado || "R$ —", C.CHOC, C.CREAM2, C.LINE],
      ["CUSTO REAL", o.real || "R$ —", C.GD, "EDF5EB", "CFE3CB"]].forEach(([lab, val, vc, bg, ln], i) => {
       const kx = fx + i * (kw + 0.18);
-      s.addShape("roundRect", { rectRadius: 0.07, x: kx, y: 1.96, w: kw, h: 0.92, fill: { color: bg }, line: { color: ln, width: 0.75 } });
-      s.addText(lab, { x: kx + 0.13, y: 2.08, w: kw - 0.2, h: 0.18, fontSize: 7.5, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1 });
-      s.addText(val, { x: kx + 0.13, y: 2.30, w: kw - 0.2, h: 0.42, fontSize: val.length > 14 ? 13 : 16, bold: true, color: vc, fontFace: FONT, margin: 0, valign: "middle" });
+      s.addShape("roundRect", { rectRadius: 0.07, x: kx, y: 1.96, w: kw, h: 0.92, fill: { color: bg }, line: { color: ln, width: 0.75 }, objectName: "av|2" });
+      s.addText(lab, { x: kx + 0.13, y: 2.08, w: kw - 0.2, h: 0.18, fontSize: 7.5, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1, objectName: "av|2" });
+      s.addText(val, { x: kx + 0.13, y: 2.30, w: kw - 0.2, h: 0.42, fontSize: val.length > 14 ? 13 : 16, bold: true, color: vc, fontFace: FONT, margin: 0, valign: "middle", objectName: "av|2" });
     });
     // campos
     let fy = 3.08;
     for (const [lab, val] of [["FORNECEDOR(ES)", o.fornecedor || "—"], ["APROVAÇÃO", o.aprovacao || "—"]]) {
-      s.addText(lab, { x: fx, y: fy, w: fw, h: 0.18, fontSize: 8, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1 });
-      s.addText(val, { shape: "roundRect", rectRadius: 0.055, x: fx, y: fy + 0.21, w: fw, h: 0.36, fill: { color: "FDFBF5" }, line: { color: C.LINE, width: 0.75 }, fontSize: 10.5, bold: true, color: C.CHOC2, align: "left", valign: "middle", margin: [2, 4, 2, 10], fontFace: FONT });
+      s.addText(lab, { x: fx, y: fy, w: fw, h: 0.18, fontSize: 8, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1, objectName: "av|2" });
+      s.addText(val, { shape: "roundRect", rectRadius: 0.055, x: fx, y: fy + 0.21, w: fw, h: 0.36, fill: { color: "FDFBF5" }, line: { color: C.LINE, width: 0.75 }, fontSize: 10.5, bold: true, color: C.CHOC2, align: "left", valign: "middle", margin: [2, 4, 2, 10], fontFace: FONT, objectName: "av|2" });
       fy += 0.74;
     }
     // observações
-    s.addText("OBSERVAÇÕES SOBRE O ORÇAMENTO", { x: fx, y: fy + 0.02, w: fw, h: 0.18, fontSize: 8, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1 });
+    s.addText("OBSERVAÇÕES SOBRE O ORÇAMENTO", { x: fx, y: fy + 0.02, w: fw, h: 0.18, fontSize: 8, bold: true, color: C.MUTE, fontFace: FONT, margin: 0, charSpacing: 1, objectName: "av|2" });
     const oh = 6.72 - (fy + 0.25);
-    s.addText(o.obs || "—", { shape: "roundRect", rectRadius: 0.07, x: fx, y: fy + 0.25, w: fw, h: oh, fill: { color: C.OBS_BG }, line: { color: C.OBS_LN, width: 0.75 }, fontSize: 10, color: C.CHOC2, align: "left", valign: "top", margin: [6, 6, 6, 13], fontFace: FONT });
-    s.addShape("rect", { x: fx, y: fy + 0.25, w: 0.055, h: oh, fill: { color: C.GOLDLT }, line: NOLINE });
+    s.addText(o.obs || "—", { shape: "roundRect", rectRadius: 0.07, x: fx, y: fy + 0.25, w: fw, h: oh, fill: { color: C.OBS_BG }, line: { color: C.OBS_LN, width: 0.75 }, fontSize: 10, color: C.CHOC2, align: "left", valign: "top", margin: [6, 6, 6, 13], fontFace: FONT, objectName: "av|2" });
+    s.addShape("rect", { x: fx, y: fy + 0.25, w: 0.055, h: oh, fill: { color: C.GOLDLT }, line: NOLINE, objectName: "av|2" });
 
     footer(s, false);
   }
@@ -270,17 +270,17 @@
       s.addShape("ellipse", { x: 11.5, y: 5.3, w: 3.4, h: 3.4, fill: { color: "472B1C" }, line: NOLINE });
     }
     s.addShape("rect", { x: 0, y: 7.34, w: 13.333, h: 0.16, fill: { color: C.GOLD }, line: NOLINE });
-    s.addText("P & D   ·   P E S Q U I S A   &   D E S E N V O L V I M E N T O", { x: 0.95, y: 1.55, w: 10, h: 0.35, fontSize: 12, bold: true, color: C.GOLDLT, fontFace: FONT, margin: 0 });
-    s.addText("Acompanhamento\nde Projetos", { x: 0.92, y: 2.0, w: 11, h: 1.9, fontSize: 45, bold: true, color: C.WHITE, fontFace: FONT, margin: 0, valign: "top" });
-    s.addText("Status do portfólio de novos produtos — andamento, pendências e próximos passos, projeto a projeto.", { x: 0.95, y: 4.05, w: 8.6, h: 0.75, fontSize: 15, color: C.CREAMTXT, fontFace: FONT, margin: 0 });
-    s.addText("Reunião  ·  " + (ciclo || ""), { shape: "roundRect", rectRadius: 0.26, x: 0.95, y: 5.0, w: 3.3, h: 0.52, fill: { color: C.CHOC }, line: { color: C.GOLD, width: 1.25 }, fontSize: 13, bold: true, color: "F4E6CC", align: "center", valign: "middle", margin: 0, fontFace: FONT });
+    s.addText("P & D   ·   P E S Q U I S A   &   D E S E N V O L V I M E N T O", { x: 0.95, y: 1.55, w: 10, h: 0.35, fontSize: 12, bold: true, color: C.GOLDLT, fontFace: FONT, margin: 0, objectName: "av|1" });
+    s.addText("Acompanhamento\nde Projetos", { x: 0.92, y: 2.0, w: 11, h: 1.9, fontSize: 45, bold: true, color: C.WHITE, fontFace: FONT, margin: 0, valign: "top", objectName: "av|2" });
+    s.addText("Status do portfólio de novos produtos — andamento, pendências e próximos passos, projeto a projeto.", { x: 0.95, y: 4.05, w: 8.6, h: 0.75, fontSize: 15, color: C.CREAMTXT, fontFace: FONT, margin: 0, objectName: "av|3" });
+    s.addText("Reunião  ·  " + (ciclo || ""), { shape: "roundRect", rectRadius: 0.26, x: 0.95, y: 5.0, w: 3.3, h: 0.52, fill: { color: C.CHOC }, line: { color: C.GOLD, width: 1.25 }, fontSize: 13, bold: true, color: "F4E6CC", align: "center", valign: "middle", margin: 0, fontFace: FONT, objectName: "av|4" });
     if (LOGO && LOGO.WORDMARK) {
       const lh = 1.0, lw = lh * LOGO.WM_AR;
-      s.addImage({ data: LOGO.WORDMARK, x: 0.92, y: 5.85, w: lw, h: lh });
-      s.addText("CHOCOLATE DE VERDADE", { x: 0.92, y: 6.95, w: lw, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0, align: "center", charSpacing: 3 });
+      s.addImage({ data: LOGO.WORDMARK, x: 0.92, y: 5.85, w: lw, h: lh, objectName: "av|5" });
+      s.addText("CHOCOLATE DE VERDADE", { x: 0.92, y: 6.95, w: lw, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0, align: "center", charSpacing: 3, objectName: "av|5" });
     } else {
-      s.addText("Divine", { x: 0.92, y: 6.05, w: 4, h: 0.85, fontSize: 38, bold: true, italic: true, color: C.GOLDLT, fontFace: SCRIPT, margin: 0 });
-      s.addText("C H O C O L A T E   D E   V E R D A D E", { x: 0.98, y: 6.92, w: 5, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0 });
+      s.addText("Divine", { x: 0.92, y: 6.05, w: 4, h: 0.85, fontSize: 38, bold: true, italic: true, color: C.GOLDLT, fontFace: SCRIPT, margin: 0, objectName: "av|5" });
+      s.addText("C H O C O L A T E   D E   V E R D A D E", { x: 0.98, y: 6.92, w: 5, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0, objectName: "av|5" });
     }
   }
 
