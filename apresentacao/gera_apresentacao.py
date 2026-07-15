@@ -174,11 +174,20 @@ def header(s, eyebrow, title, prioridade=None, status_geral=None, status_fill=GO
         text(s, 11.10, 0.14, 1.90, 0.2, [[("STATUS GERAL", 8, True, CREAMTXT)]], align=PP_ALIGN.CENTER)
         pill(s, 11.10, 0.40, 1.90, 0.40, status_fill, status_geral, status_tc, size=11.5)
 
-def subband(s, resp, abertura, atualizado):
+def subband(s, resp, abertura, atualizado, link=""):
     rect(s, 0, 1.008, 13.333, 0.40, CREAM2)
-    text(s, 0.38, 1.075, 9.5, 0.28, [[
+    tem_link = bool((link or "").strip())
+    text(s, 0.38, 1.075, 5.8 if tem_link else 8.4, 0.28, [[
         ("Responsável: ", 10, True, CHOC), (resp, 10, False, CHOC2),
         ("      Data de abertura: ", 10, True, CHOC), (abertura, 10, False, CHOC2)]])
+    if tem_link:
+        url = link if link.lower().startswith("http") else "https://" + link
+        chip = pill(s, 6.35, 1.045, 3.35, 0.32, WHITE, "🔎  Pesquisa de mercado  ↗", CHOC, size=9.5, line_c=GOLD)
+        try:
+            run = chip.text_frame.paragraphs[0].runs[0]
+            run.hyperlink.address = url
+        except Exception:
+            pass
     text(s, 9.9, 1.075, 3.05, 0.28, [[("Atualizado: " + atualizado, 9.5, False, MUTE, True)]],
          align=PP_ALIGN.RIGHT)
 
@@ -257,16 +266,17 @@ anim_lib.set_entrance(s, _cg)
 # ============================================================
 # builders dos 2 slides de projeto
 # ============================================================
-ETAPAS_PADRAO = ["1. Pesquisa de mercado", "2. Desenv. da formulação", "3. Custo",
-                 "4. Homologação", "5. Volume (comercial)", "6. Engenharias e FTs",
-                 "7. Criação da arte e etiquetas", "8. Tabela comercial",
-                 "9. Comunicado vendedores", "10. Lançamento"]
+# nomes SEM número — a numeração é automática (segue a ordem)
+ETAPAS_PADRAO = ["Pesquisa de mercado", "Desenv. da formulação", "Custo e preço de venda",
+                 "Viabilidade produtiva/teste em linha", "Homologação", "Volume (comercial)",
+                 "Engenharias e FTs", "Criação da arte e etiquetas", "Compras", "Tabela comercial",
+                 "Produção", "Comunicado vendedores", "Campanha de lançamento"]
 
 def slide_acompanhamento(nome, prioridade, status_geral, status_fill, status_tc,
-                         resp, abertura, atualizado, etapas, pendencias, acoes, observ):
+                         resp, abertura, atualizado, etapas, pendencias, acoes, observ, link=""):
     s = new_slide()
     header(s, "ACOMPANHAMENTO DO PROJETO", nome, prioridade, status_geral, status_fill, status_tc)
-    subband(s, resp, abertura, atualizado)
+    subband(s, resp, abertura, atualizado, link)
 
     # ---- card esquerdo: status detalhado ----
     card(s, 0.35, 1.62, 6.55, 5.42)
@@ -274,7 +284,10 @@ def slide_acompanhamento(nome, prioridade, status_geral, status_fill, status_tc,
 
     tx, ty, tw = 0.62, 2.18, 6.02
     col_w = [2.85, 0.72, 1.45, 1.00]
-    hdr_h, row_h = 0.32, 0.442
+    # altura/fonte adaptativas: cabem até ~13 etapas sem estourar o card
+    hdr_h = 0.32
+    row_h = min(0.442, max(0.30, 4.42 / max(len(etapas), 1)))
+    efs = 8.5 if len(etapas) > 11 else 9.5
     tbl = s.shapes.add_table(len(etapas) + 1, 4, Inches(tx), Inches(ty),
                              Inches(tw), Inches(hdr_h + row_h * len(etapas))).table
     tbl.first_row = False; tbl.horz_banding = False
@@ -297,10 +310,10 @@ def slide_acompanhamento(nome, prioridade, status_geral, status_fill, status_tc,
              PP_ALIGN.CENTER if cidx in (1, 3) else PP_ALIGN.LEFT, CREAM2)
     for i, (etapa, st, resp_e, prev) in enumerate(etapas):
         f = CREAM3 if i % 2 else WHITE
-        cell(i + 1, 0, etapa, 9.5, True, CHOC, PP_ALIGN.LEFT, f)
+        cell(i + 1, 0, f"{i + 1}. {etapa}", efs, True, CHOC, PP_ALIGN.LEFT, f)
         cell(i + 1, 1, "", 9, False, CHOC, PP_ALIGN.CENTER, f)
-        cell(i + 1, 2, resp_e, 9.5, False, CHOC2, PP_ALIGN.LEFT, f)
-        cell(i + 1, 3, prev, 9.5, False, CHOC2, PP_ALIGN.CENTER, f)
+        cell(i + 1, 2, resp_e, efs, False, CHOC2, PP_ALIGN.LEFT, f)
+        cell(i + 1, 3, prev, efs, False, CHOC2, PP_ALIGN.CENTER, f)
         status_dot(s, tx + col_w[0] + col_w[1] / 2, ty + hdr_h + row_h * i + row_h / 2, st, d=0.235)
 
     # ---- coluna direita (entra em cascata: Pendências -> Ações -> Observações) ----
@@ -392,25 +405,21 @@ def slide_imagens_orcamento(nome, orc):
 # ============================================================
 # SLIDES 2–3 — EXEMPLO PREENCHIDO (Barrinhas FOR FIT)
 # ============================================================
-etapas_forfit = [
-    (ETAPAS_PADRAO[0], 'g', "Trade", "20/06"),
-    (ETAPAS_PADRAO[1], 'a', "P&D", "10/07"),
-    (ETAPAS_PADRAO[2], 'n', "Camila", "—"),
-    (ETAPAS_PADRAO[3], 'n', "CQ", "—"),
-    (ETAPAS_PADRAO[4], 'n', "Mateus", "—"),
-    (ETAPAS_PADRAO[5], 'a', "P&D", "15/07"),
-    (ETAPAS_PADRAO[6], 'n', "Marketing", "—"),
-    (ETAPAS_PADRAO[7], 'n', "P&D", "—"),
-    (ETAPAS_PADRAO[8], 'n', "Marketing", "—"),
-    (ETAPAS_PADRAO[9], 'n', "Marketing", "—"),
-]
+_st_forfit = ['g', 'a', 'a', 'r', 'g', 'n', 'a', 'g', 'n', 'a', 'n', 'n', 'n']
+_rp_forfit = ["Trade", "P&D", "Camila", "Carla e Samuel", "CQ", "Mateus", "P&D",
+              "Marketing", "—", "P&D", "—", "Marketing", "Marketing"]
+_pv_forfit = ["08/06", "24/07", "24/07", "03/08", "17/07", "—", "24/07",
+              "24/07", "—", "17/07", "—", "—", "—"]
+etapas_forfit = [(ETAPAS_PADRAO[i], _st_forfit[i], _rp_forfit[i], _pv_forfit[i])
+                 for i in range(len(ETAPAS_PADRAO))]
 slide_acompanhamento(
-    "Barrinhas FOR FIT", "ALTA", "EM ANDAMENTO", GOLDLT, INK,
+    "Barrinhas FOR FIT", "ALTA", "EM TESTE", AB, AD,
     "Paloma e Isabele", "15/06/2026", "30/06/2026",
     etapas_forfit,
     ["Aguardar fechamento de formulação;", "Moinho de rolos;"],
     ["Concluir ajustes no moinho de rolos;", "Fechar formulações;"],
-    "Projeto dentro do cronograma. Custo e homologação só iniciam após o fechamento da formulação (etapas 2 e 6).")
+    "Projeto dentro do cronograma.",
+    link="www.exemplo.com/pesquisa-barrinhas")
 
 slide_imagens_orcamento("Barrinhas FOR FIT", {
     "campos": [("CUSTO ESTIMADO", "R$ —"), ("CUSTO REAL", "R$ —"),
@@ -477,6 +486,29 @@ for lab, f, tc in gerais:
     pill(s, gx, gy, w, 0.38, f, lab, tc, size=9.5)
     gx += w + 0.16
 footer(s, legend=False)
+
+# ============================================================
+# SLIDE FINAL — MUITO OBRIGADA
+# ============================================================
+s = new_slide(CHOC)
+if os.path.exists(CAPA_BG):
+    s.shapes.add_picture(CAPA_BG, Inches(0), Inches(0), width=Inches(13.333), height=Inches(7.5))
+else:
+    shape(s, MSO_SHAPE.OVAL, 10.4, -1.6, 4.6, 4.6, fill=RGBColor(0x4A, 0x2E, 0x1E))
+    shape(s, MSO_SHAPE.OVAL, 11.5, 5.3, 3.4, 3.4, fill=RGBColor(0x47, 0x2B, 0x1C))
+rect(s, 0, 7.34, 13.333, 0.16, GOLD)
+_tg = []; _b = _ids(s)
+text(s, 0.92, 2.55, 11.5, 1.3, [[("Muito obrigada!", 54, True, WHITE)]])
+_tg.append(_grp(s, _b)); _b = _ids(s)
+text(s, 0.95, 3.95, 10.0, 0.4, [[("Divine Chocolates · Pesquisa & Desenvolvimento", 15, False, CREAMTXT)]])
+_tg.append(_grp(s, _b)); _b = _ids(s)
+if HAS_LOGO:
+    _pic = s.shapes.add_picture(LOGO_WM, Inches(0.92), Inches(5.55), height=Inches(0.9))
+    text(s, 0.92, 6.52, _pic.width / 914400, 0.3,
+         [[("C H O C O L A T E   D E   V E R D A D E", 9.5, True, CREAMTXT)]],
+         align=PP_ALIGN.CENTER, wrap=False)
+_tg.append(_grp(s, _b))
+anim_lib.set_entrance(s, _tg)
 
 # transição fade suave em todos os slides
 for _sl in prs.slides:

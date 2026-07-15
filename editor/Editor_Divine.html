@@ -54,6 +54,13 @@ body{background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px}
 .pitem .st{width:9px;height:9px;border-radius:50%;flex:none}
 .pitem .pname{font-size:13px;font-weight:600;color:var(--choc2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pitem.sel .pname{color:var(--choc);font-weight:700}
+.pitem .grip{color:var(--mute);font-size:13px;cursor:grab;opacity:.35;line-height:1}
+.pitem:hover .grip{opacity:.8}
+.pitem.dragover{box-shadow:inset 0 3px 0 var(--gold)}
+.et tr.dragover td{box-shadow:inset 0 2px 0 var(--gold)}
+.et .num .grip{color:var(--mute);cursor:grab;opacity:0;font-size:11px;margin-right:2px}
+.et .num{cursor:grab}
+.et tr:hover .num .grip{opacity:.7}
 .sideacts{display:flex;gap:8px;align-items:center}
 
 /* ============ CAMPOS ============ */
@@ -196,6 +203,8 @@ table.et{width:100%;border-collapse:collapse}
             <input type="text" id="f_ab" placeholder="dd/mm/aaaa" oninput="P().abertura=this.value;save()"></div>
           <div class="c4"><label class="fl">Atualizado em</label>
             <input type="text" id="f_at" placeholder="dd/mm/aaaa" oninput="P().atualizado=this.value;save()"></div>
+          <div class="c12"><label class="fl">🔎 Link da pesquisa de mercado</label>
+            <input type="text" id="f_link" placeholder="https://… (cole o link da pesquisa deste projeto)" oninput="P().linkPesquisa=this.value;save()"></div>
         </div>
       </div>
     </div>
@@ -494,14 +503,22 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     }
   }
 
-  function subband(slide, resp, abertura, atualizado) {
+  function subband(slide, resp, abertura, atualizado, link) {
     slide.addShape("rect", { x: 0, y: 1.008, w: 13.333, h: 0.40, fill: { color: C.CREAM2 }, line: NOLINE });
+    const temLink = link && String(link).trim();
     slide.addText([
       { text: "Responsável: ", options: { bold: true, color: C.CHOC } },
       { text: (resp || "—") + "      ", options: { color: C.CHOC2 } },
       { text: "Data de abertura: ", options: { bold: true, color: C.CHOC } },
       { text: abertura || "—", options: { color: C.CHOC2 } },
-    ], { x: 0.38, y: 1.075, w: 9.5, h: 0.28, fontSize: 10, fontFace: FONT, margin: 0 });
+    ], { x: 0.38, y: 1.075, w: temLink ? 5.8 : 8.4, h: 0.28, fontSize: 10, fontFace: FONT, margin: 0 });
+    if (temLink) {   // chip clicável da pesquisa de mercado
+      const url = /^https?:\/\//i.test(link) ? link : "https://" + link;
+      slide.addText([{ text: "🔎  Pesquisa de mercado  ↗", options: { hyperlink: { url } } }],
+        { shape: "roundRect", rectRadius: 0.13, x: 6.35, y: 1.045, w: 3.35, h: 0.32,
+          fill: { color: C.WHITE }, line: { color: C.GOLD, width: 1 },
+          fontSize: 9.5, bold: true, color: C.CHOC, align: "center", valign: "middle", margin: 0, fontFace: FONT });
+    }
     slide.addText("Atualizado: " + (atualizado || "—"), { x: 9.9, y: 1.075, w: 3.05, h: 0.28, fontSize: 9.5, italic: true, color: C.MUTE, align: "right", fontFace: FONT, margin: 0 });
   }
 
@@ -542,7 +559,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     const s = pptx.addSlide();
     s.background = { color: C.CREAM };
     header(s, "ACOMPANHAMENTO DO PROJETO", p.nome || "[ Nome do Projeto ]", p.prioridade || "—", p.statusGeral || "PLANEJAMENTO");
-    subband(s, p.resp, p.abertura, p.atualizado);
+    subband(s, p.resp, p.abertura, p.atualizado, p.linkPesquisa);
 
     // card esquerdo — status detalhado
     card(s, 0.35, 1.62, 6.55, 5.42);
@@ -560,7 +577,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
       const f = i % 2 ? C.CREAM3 : C.WHITE;
       const fs = etapas.length > 11 ? 8.5 : 9.5;
       rows.push([
-        { text: e.n || "", options: { fill: { color: f }, color: C.CHOC, fontSize: fs, bold: true, align: "left", valign: "middle" } },
+        { text: (i + 1) + ". " + (e.n || ""), options: { fill: { color: f }, color: C.CHOC, fontSize: fs, bold: true, align: "left", valign: "middle" } },
         { text: "", options: { fill: { color: f } } },
         { text: e.resp || "—", options: { fill: { color: f }, color: C.CHOC2, fontSize: fs, align: "left", valign: "middle" } },
         { text: e.prev || "—", options: { fill: { color: f }, color: C.CHOC2, fontSize: fs, align: "center", valign: "middle" } },
@@ -692,6 +709,24 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     }
   }
 
+  function slideObrigada(pptx) {
+    const s = pptx.addSlide();
+    s.background = { color: C.CHOC };
+    if (CAPA && CAPA.BG) s.addImage({ data: CAPA.BG, x: 0, y: 0, w: 13.333, h: 7.5 });
+    else {
+      s.addShape("ellipse", { x: 10.4, y: -1.6, w: 4.6, h: 4.6, fill: { color: "4A2E1E" }, line: NOLINE });
+      s.addShape("ellipse", { x: 11.5, y: 5.3, w: 3.4, h: 3.4, fill: { color: "472B1C" }, line: NOLINE });
+    }
+    s.addShape("rect", { x: 0, y: 7.34, w: 13.333, h: 0.16, fill: { color: C.GOLD }, line: NOLINE });
+    s.addText("Muito obrigada!", { x: 0.92, y: 2.55, w: 11.5, h: 1.3, fontSize: 54, bold: true, color: C.WHITE, fontFace: FONT, margin: 0, objectName: "av|1" });
+    s.addText("Divine Chocolates · Pesquisa & Desenvolvimento", { x: 0.95, y: 3.95, w: 10, h: 0.4, fontSize: 15, color: C.CREAMTXT, fontFace: FONT, margin: 0, objectName: "av|2" });
+    if (LOGO && LOGO.WORDMARK) {
+      const lh = 0.9, lw = lh * LOGO.WM_AR;
+      s.addImage({ data: LOGO.WORDMARK, x: 0.92, y: 5.55, w: lw, h: lh, objectName: "av|3" });
+      s.addText("CHOCOLATE DE VERDADE", { x: 0.92, y: 6.52, w: lw, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0, align: "center", charSpacing: 3, objectName: "av|3" });
+    }
+  }
+
   function build(PptxGenJS, state) {
     const pptx = new PptxGenJS();
     pptx.defineLayout({ name: "W16x9", width: 13.333, height: 7.5 });
@@ -703,6 +738,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
       slideAcompanhamento(pptx, p);
       slideOrcamento(pptx, p);
     }
+    slideObrigada(pptx);
     return pptx;
   }
 
@@ -715,42 +751,45 @@ const KEY = "divine_editor_v1";
 const ORDER = ["n", "a", "g", "r"];
 const SYM = { n: "", a: "◐", g: "✓", r: "!" };
 const MAX_IMGS = 6;
-const ETAPAS_PADRAO = ["1. Pesquisa de mercado","2. Desenv. da formulação","3. Custo","4. Homologação",
-  "5. Volume (comercial)","6. Engenharias e FTs","7. Criação da arte e etiquetas","8. Tabela comercial",
-  "9. Comunicado vendedores","10. Lançamento"];
+// nomes SEM número — a numeração (01, 02…) é automática e segue a ordem
+const ETAPAS_PADRAO = ["Pesquisa de mercado","Desenv. da formulação","Custo e preço de venda",
+  "Viabilidade produtiva/teste em linha","Homologação","Volume (comercial)","Engenharias e FTs",
+  "Criação da arte e etiquetas","Compras","Tabela comercial","Produção","Comunicado vendedores",
+  "Campanha de lançamento"];
 
 function novoProjeto(nome) {
   return {
     nome: nome || "Novo projeto", prioridade: "—", statusGeral: "PLANEJAMENTO",
-    resp: "", abertura: "", atualizado: "",
+    resp: "", abertura: "", atualizado: "", linkPesquisa: "",
     etapas: ETAPAS_PADRAO.map(n => ({ n, st: "n", resp: "", prev: "" })),
     pend: [], acoes: [], obs: "",
     orc: { estimado: "", real: "", fornecedor: "", aprovacao: "", obs: "" },
     imgs: [],
   };
 }
-const DEFAULT = { ciclo: "Junho / 2026", sel: 0, projects: [(() => {
+const DEFAULT = { ciclo: "Julho / 2026", sel: 0, projects: [(() => {
   const p = novoProjeto("Barrinhas FOR FIT");
-  p.prioridade = "ALTA"; p.statusGeral = "EM ANDAMENTO";
+  p.prioridade = "ALTA"; p.statusGeral = "EM TESTE";
   p.resp = "Paloma e Isabele"; p.abertura = "15/06/2026"; p.atualizado = "30/06/2026";
-  p.etapas[0] = { n: ETAPAS_PADRAO[0], st: "g", resp: "Trade", prev: "20/06" };
-  p.etapas[1] = { n: ETAPAS_PADRAO[1], st: "a", resp: "P&D", prev: "10/07" };
-  p.etapas[2].resp = "Camila"; p.etapas[3].resp = "CQ"; p.etapas[4].resp = "Mateus";
-  p.etapas[5] = { n: ETAPAS_PADRAO[5], st: "a", resp: "P&D", prev: "15/07" };
-  p.etapas[6].resp = "Marketing"; p.etapas[7].resp = "P&D"; p.etapas[8].resp = "Marketing"; p.etapas[9].resp = "Marketing";
+  const st = ["g","a","a","r","g","n","a","g","n","a","n","n","n"];
+  const rp = ["Trade","P&D","Camila","Carla e Samuel","CQ","Mateus","P&D","Marketing","","P&D","","Marketing","Marketing"];
+  p.etapas.forEach((e,i)=>{ e.st=st[i]; e.resp=rp[i]; });
   p.pend = ["Aguardar fechamento de formulação;", "Moinho de rolos;"];
   p.acoes = ["Concluir ajustes no moinho de rolos;", "Fechar formulações;"];
   p.obs = "Projeto dentro do cronograma.";
-  p.orc.obs = "A definir junto ao fechamento de formulação e custo (etapas 2 e 3).";
   return p;
 })()] };
 
 let state = load();
+// tira "9. " do texto (numeração virou automática) — idempotente
+function stripNum(n){ return (n||"").replace(/^\s*\d+\s*[\.\)]\s*(?:\.\s*)?/, "").trim(); }
 function migrate(s) {
   (s.projects || []).forEach(p => {
     if (!p.imgs) p.imgs = p.img ? [p.img] : [];
     delete p.img;
     if (!p.orc) p.orc = { estimado: "", real: "", fornecedor: "", aprovacao: "", obs: "" };
+    if (p.linkPesquisa == null) p.linkPesquisa = "";
+    (p.etapas || []).forEach(e => { e.n = stripNum(e.n); });
   });
   return s;
 }
@@ -770,11 +809,35 @@ const SGDOT = { "EM ANDAMENTO": "var(--a)", "CONCLUÍDO": "var(--g)", "PAUSADO":
 function renderList() {
   document.getElementById("pcount").textContent = state.projects.length + (state.projects.length === 1 ? " projeto" : " projetos");
   document.getElementById("plist").innerHTML = state.projects.map((p, i) =>
-    `<div class="pitem ${i === state.sel ? "sel" : ""}" onclick="selProject(${i})">
+    `<div class="pitem ${i === state.sel ? "sel" : ""}" draggable="true" onclick="selProject(${i})"
+       ondragstart="dragStart(event,'proj',${i})"
+       ondragover="dragOverRow(event,'proj',${i});this.classList.add('dragover')"
+       ondragleave="this.classList.remove('dragover')"
+       ondrop="this.classList.remove('dragover');dropRow(event,'proj',${i})" ondragend="clearDrag()">
+       <span class="grip" title="Arraste para reordenar">⠿</span>
        <span class="st" style="background:${SGDOT[p.statusGeral] || "var(--n)"}"></span>
        <span class="pname">${esc(p.nome) || "(sem nome)"}</span></div>`).join("");
 }
 function selProject(i) { state.sel = i; save(); renderAll(); }
+
+/* ---- reordenar por arrastar (projetos e etapas) ---- */
+let _drag = { list: null, from: null };
+function dragStart(ev, list, i) { _drag = { list, from: i }; ev.dataTransfer.effectAllowed = "move"; try { ev.dataTransfer.setData("text/plain", ""); } catch (e) {} }
+function dragOverRow(ev, list) { if (_drag.list === list) ev.preventDefault(); }
+function dropRow(ev, list, i) { if (_drag.list !== list) return; ev.preventDefault(); reorder(list, _drag.from, i); clearDrag(); }
+function clearDrag() { _drag = { list: null, from: null }; document.querySelectorAll(".dragover").forEach(e => e.classList.remove("dragover")); }
+function reorder(list, from, to) {
+  if (from == null || from === to) return;
+  if (list === "proj") {
+    const arr = state.projects, cur = arr[state.sel];
+    const [m] = arr.splice(from, 1); arr.splice(to, 0, m);
+    state.sel = arr.indexOf(cur); save(); renderAll();
+    toast("Projeto reordenado.");
+  } else {
+    const arr = P().etapas; const [m] = arr.splice(from, 1); arr.splice(to, 0, m);
+    save(); renderEtapas();
+  }
+}
 function addProject() { state.projects.push(novoProjeto()); state.sel = state.projects.length - 1; save(); renderAll(); }
 function dupProject() {
   const c = JSON.parse(JSON.stringify(P())); c.nome += " (cópia)";
@@ -802,6 +865,7 @@ function renderForm() {
   document.getElementById("f_resp").value = p.resp || "";
   document.getElementById("f_ab").value = p.abertura || "";
   document.getElementById("f_at").value = p.atualizado || "";
+  document.getElementById("f_link").value = p.linkPesquisa || "";
   document.getElementById("f_pend").value = (p.pend || []).join("\n");
   document.getElementById("f_acoes").value = (p.acoes || []).join("\n");
   document.getElementById("f_obs").value = p.obs || "";
@@ -815,9 +879,13 @@ function renderForm() {
 }
 function renderEtapas() {
   document.getElementById("etapas").innerHTML = P().etapas.map((e, i) => `
-    <tr>
-      <td class="num">${String(i + 1).padStart(2, "0")}</td>
-      <td><input type="text" value="${esc(e.n)}" oninput="P().etapas[${i}].n=this.value;save()"></td>
+    <tr ondragover="dragOverRow(event,'et',${i});this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="this.classList.remove('dragover');dropRow(event,'et',${i})">
+      <td class="num" draggable="true" title="Arraste para reordenar"
+          ondragstart="dragStart(event,'et',${i})" ondragend="clearDrag()">
+        <span class="grip">⠿</span><b>${String(i + 1).padStart(2, "0")}</b></td>
+      <td><input type="text" value="${esc(e.n)}" placeholder="Nome da etapa" oninput="P().etapas[${i}].n=this.value;save()"></td>
       <td class="cst"><button class="stbtn ${e.st}" title="Clique para mudar o status" onclick="cycleSt(${i})">${SYM[e.st]}</button></td>
       <td><input type="text" value="${esc(e.resp)}" placeholder="—" oninput="P().etapas[${i}].resp=this.value;save()"></td>
       <td><input type="text" value="${esc(e.prev)}" placeholder="—" oninput="P().etapas[${i}].prev=this.value;save()"></td>
