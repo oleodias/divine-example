@@ -114,7 +114,7 @@ table.et{width:100%;border-collapse:collapse}
 /* ============ FOTOS ============ */
 .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .thumb{position:relative;aspect-ratio:4/3;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--cream)}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb img{width:100%;height:100%;object-fit:contain;display:block}
 .thumb .x{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;border:0;cursor:pointer;
   background:rgba(42,23,4,.72);color:#fff;font-size:13px;font-weight:800;line-height:1;display:flex;align-items:center;justify-content:center}
 .thumb .x:hover{background:var(--r)}
@@ -247,8 +247,9 @@ table.et{width:100%;border-collapse:collapse}
       <div class="pbody">
         <div class="thumbs" id="thumbs"></div>
         <input id="fimg" type="file" accept="image/*" multiple style="display:none" onchange="pickImg(event)">
-        <div class="imghint">Arraste as fotos para o quadro ou clique em <b>adicionar</b>. Com 1 foto ela ocupa o espaço todo;
-          com 2 ou mais, o slide monta a grade automaticamente (mockups, protótipos, capturas de tela…).</div>
+        <div class="imghint">Arraste as fotos para o quadro ou clique em <b>adicionar</b>. O slide monta a galeria
+          <b>respeitando a proporção real de cada imagem</b> — fotos largas, quadradas ou em pé ficam sem distorção
+          (mockups, protótipos, capturas de tela…).</div>
       </div>
     </div>
 
@@ -519,17 +520,32 @@ function loadJSON(ev) {
   };
   rd.readAsText(f); ev.target.value = "";
 }
+// mede a proporção (largura/altura) de cada imagem, para o layout responsivo do slide
+const _arCache = {};
+function medeAR(src) {
+  return new Promise(res => {
+    if (_arCache[src]) return res();
+    const im = new Image();
+    im.onload = () => { _arCache[src] = (im.naturalWidth / im.naturalHeight) || (4 / 3); res(); };
+    im.onerror = () => { _arCache[src] = 4 / 3; res(); };
+    im.src = src;
+  });
+}
+function medeTodasImagens() {
+  const todas = [];
+  state.projects.forEach(p => (p.imgs || []).forEach(im => todas.push(im)));
+  return Promise.all([...new Set(todas)].map(medeAR)).then(() => _arCache);
+}
 function baixarPPTX() {
-  try {
-    const pptx = DivineExport.build(PptxGenJS, state);
+  toast("Gerando PowerPoint…");
+  medeTodasImagens().then(arMap => {
+    const pptx = DivineExport.build(PptxGenJS, state, arMap);
     const podeAnimar = typeof DivineAnim !== "undefined" && typeof JSZip !== "undefined";
     if (!podeAnimar) {   // fallback: sem pós-processamento, baixa direto
-      pptx.writeFile({ fileName: "Divine_Acompanhamento_Projetos.pptx" })
+      return pptx.writeFile({ fileName: "Divine_Acompanhamento_Projetos.pptx" })
         .then(() => toast("PowerPoint gerado! Veja a pasta de downloads."));
-      return;
     }
-    toast("Gerando PowerPoint com animações…");
-    pptx.write({ outputType: "arraybuffer" })
+    return pptx.write({ outputType: "arraybuffer" })
       .then(buf => DivineAnim.process(buf, JSZip))
       .then(blob => {
         const a = document.createElement("a");
@@ -538,9 +554,8 @@ function baixarPPTX() {
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
         toast("PowerPoint gerado! Veja a pasta de downloads.");
-      })
-      .catch(e => { alert("Erro ao gerar o PowerPoint: " + e.message); });
-  } catch (e) { alert("Erro ao gerar o PowerPoint: " + e.message); }
+      });
+  }).catch(e => { alert("Erro ao gerar o PowerPoint: " + e.message); });
 }
 function toast(msg) {
   const t = document.getElementById("toast");

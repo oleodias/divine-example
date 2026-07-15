@@ -193,17 +193,44 @@
     footer(s, true);
   }
 
-  // frações [x, y, w, h] da área útil, conforme a quantidade de fotos
-  function gridFor(n) {
-    if (n <= 1) return [[0, 0, 1, 1]];
-    if (n === 2) return [[0, 0, .5, 1], [.5, 0, .5, 1]];
-    if (n === 3) return [[0, 0, .58, 1], [.58, 0, .42, .5], [.58, .5, .42, .5]];
-    if (n === 4) return [[0, 0, .5, .5], [.5, 0, .5, .5], [0, .5, .5, .5], [.5, .5, .5, .5]];
-    if (n === 5) return [[0, 0, 1 / 3, .5], [1 / 3, 0, 1 / 3, .5], [2 / 3, 0, 1 / 3, .5], [0, .5, .5, .5], [.5, .5, .5, .5]];
-    return [[0, 0, 1 / 3, .5], [1 / 3, 0, 1 / 3, .5], [2 / 3, 0, 1 / 3, .5], [0, .5, 1 / 3, .5], [1 / 3, .5, 1 / 3, .5], [2 / 3, .5, 1 / 3, .5]];
+  // galeria "justificada": respeita a proporção real de cada imagem (ar = larg/alt),
+  // distribui em linhas e escala para caber na área WxH, centralizando. Sem distorção.
+  function justifiedLayout(ars, W, H, gap) {
+    const N = ars.length;
+    if (!N) return [];
+    const counts = (n, rows) => {
+      const base = Math.floor(n / rows), extra = n % rows, c = [];
+      for (let r = 0; r < rows; r++) c.push(base + (r < extra ? 1 : 0));
+      return c;
+    };
+    let best = null;
+    for (let rows = 1; rows <= N; rows++) {
+      const cs = counts(N, rows);
+      let idx = 0; const rowH = [];
+      for (const k of cs) {
+        let sum = 0; for (let j = 0; j < k; j++) sum += ars[idx + j];
+        rowH.push((W - (k - 1) * gap) / sum); idx += k;
+      }
+      const gapsH = (rows - 1) * gap, sumH = rowH.reduce((a, b) => a + b, 0);
+      const scale = sumH + gapsH > H ? (H - gapsH) / sumH : 1;
+      let area = 0; idx = 0;
+      for (let r = 0; r < rows; r++) { const h = rowH[r] * scale; for (let j = 0; j < cs[r]; j++) area += ars[idx + j] * h * h; idx += cs[r]; }
+      if (!best || area > best.area) best = { rows, cs, rowH, scale, area };
+    }
+    const { rows, cs, rowH, scale } = best;
+    const totalH = rowH.reduce((a, b) => a + b, 0) * scale + (rows - 1) * gap;
+    const rects = []; let idx = 0, y = (H - totalH) / 2;
+    for (let r = 0; r < rows; r++) {
+      const k = cs[r], h = rowH[r] * scale;
+      let rw = (k - 1) * gap; for (let j = 0; j < k; j++) rw += ars[idx + j] * h;
+      let x = (W - rw) / 2;
+      for (let j = 0; j < k; j++) { const w = ars[idx + j] * h; rects.push({ x, y, w, h }); x += w + gap; }
+      idx += k; y += h + gap;
+    }
+    return rects;
   }
 
-  function slideOrcamento(pptx, p) {
+  function slideOrcamento(pptx, p, arMap) {
     const s = pptx.addSlide();
     s.background = { color: C.CREAM };
     header(s, "IMAGENS DO PRODUTO & ORÇAMENTO", p.nome || "[ Nome do Projeto ]");
@@ -216,15 +243,14 @@
     const imgs = (p.imgs && p.imgs.length ? p.imgs : (p.img ? [p.img] : [])).slice(0, 6);
     const ax = 0.61, ay = 1.98, aw = 7.03, ah = 4.66, gap = 0.14;
     if (imgs.length) {
-      const cells = gridFor(imgs.length);
+      const ars = imgs.map(im => (arMap && arMap[im]) || (4 / 3));   // proporção real de cada imagem
+      const rects = justifiedLayout(ars, aw, ah, gap);
       imgs.forEach((im, i) => {
-        const [fxr, fyr, fwr, fhr] = cells[i];
-        const cx = ax + fxr * aw + (fxr ? gap / 2 : 0);
-        const cy = ay + fyr * ah + (fyr ? gap / 2 : 0);
-        const cw = fwr * aw - (fxr + fwr < 1 ? gap / 2 : 0) - (fxr ? gap / 2 : 0);
-        const ch = fhr * ah - (fyr + fhr < 1 ? gap / 2 : 0) - (fyr ? gap / 2 : 0);
-        s.addShape("roundRect", { rectRadius: 0.06, x: cx, y: cy, w: cw, h: ch, fill: { color: "FDFBF5" }, line: { color: C.LINE, width: 0.75 }, objectName: "av|1" });
-        s.addImage({ data: im, x: cx + 0.07, y: cy + 0.07, w: cw - 0.14, h: ch - 0.14, sizing: { type: "contain", w: cw - 0.14, h: ch - 0.14 }, objectName: "av|1" });
+        const r = rects[i];
+        const cx = ax + r.x, cy = ay + r.y;
+        // moldura branca colada na proporção da imagem (sem distorção, sem sobra)
+        s.addShape("roundRect", { rectRadius: 0.05, x: cx - 0.035, y: cy - 0.035, w: r.w + 0.07, h: r.h + 0.07, fill: { color: "FDFBF5" }, line: { color: C.LINE, width: 0.75 }, objectName: "av|1" });
+        s.addImage({ data: im, x: cx, y: cy, w: r.w, h: r.h, objectName: "av|1" });
       });
     } else {
       s.addShape("roundRect", { rectRadius: 0.10, x: ax, y: ay, w: aw, h: ah, fill: { color: "FDFBF5" }, line: { color: C.GOLDLT, width: 1.25, dashType: "dash" }, objectName: "av|1" });
@@ -310,7 +336,7 @@
     }
   }
 
-  function build(PptxGenJS, state) {
+  function build(PptxGenJS, state, arMap) {
     const pptx = new PptxGenJS();
     pptx.defineLayout({ name: "W16x9", width: 13.333, height: 7.5 });
     pptx.layout = "W16x9";
@@ -319,11 +345,11 @@
     slideCapa(pptx, state.ciclo);
     for (const p of state.projects) {
       slideAcompanhamento(pptx, p);
-      slideOrcamento(pptx, p);
+      slideOrcamento(pptx, p, arMap);
     }
     slideObrigada(pptx);
     return pptx;
   }
 
-  return { build, STATUS_GERAL };
+  return { build, STATUS_GERAL, justifiedLayout };
 });
