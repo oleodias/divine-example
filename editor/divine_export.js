@@ -86,14 +86,22 @@
     }
   }
 
-  function subband(slide, resp, abertura, atualizado) {
+  function subband(slide, resp, abertura, atualizado, link) {
     slide.addShape("rect", { x: 0, y: 1.008, w: 13.333, h: 0.40, fill: { color: C.CREAM2 }, line: NOLINE });
+    const temLink = link && String(link).trim();
     slide.addText([
       { text: "Responsável: ", options: { bold: true, color: C.CHOC } },
       { text: (resp || "—") + "      ", options: { color: C.CHOC2 } },
       { text: "Data de abertura: ", options: { bold: true, color: C.CHOC } },
       { text: abertura || "—", options: { color: C.CHOC2 } },
-    ], { x: 0.38, y: 1.075, w: 9.5, h: 0.28, fontSize: 10, fontFace: FONT, margin: 0 });
+    ], { x: 0.38, y: 1.075, w: temLink ? 5.8 : 8.4, h: 0.28, fontSize: 10, fontFace: FONT, margin: 0 });
+    if (temLink) {   // chip clicável da pesquisa de mercado
+      const url = /^https?:\/\//i.test(link) ? link : "https://" + link;
+      slide.addText([{ text: "🔎  Pesquisa de mercado  ↗", options: { hyperlink: { url } } }],
+        { shape: "roundRect", rectRadius: 0.13, x: 6.35, y: 1.045, w: 3.35, h: 0.32,
+          fill: { color: C.WHITE }, line: { color: C.GOLD, width: 1 },
+          fontSize: 9.5, bold: true, color: C.CHOC, align: "center", valign: "middle", margin: 0, fontFace: FONT });
+    }
     slide.addText("Atualizado: " + (atualizado || "—"), { x: 9.9, y: 1.075, w: 3.05, h: 0.28, fontSize: 9.5, italic: true, color: C.MUTE, align: "right", fontFace: FONT, margin: 0 });
   }
 
@@ -134,7 +142,7 @@
     const s = pptx.addSlide();
     s.background = { color: C.CREAM };
     header(s, "ACOMPANHAMENTO DO PROJETO", p.nome || "[ Nome do Projeto ]", p.prioridade || "—", p.statusGeral || "PLANEJAMENTO");
-    subband(s, p.resp, p.abertura, p.atualizado);
+    subband(s, p.resp, p.abertura, p.atualizado, p.linkPesquisa);
 
     // card esquerdo — status detalhado
     card(s, 0.35, 1.62, 6.55, 5.42);
@@ -152,7 +160,7 @@
       const f = i % 2 ? C.CREAM3 : C.WHITE;
       const fs = etapas.length > 11 ? 8.5 : 9.5;
       rows.push([
-        { text: e.n || "", options: { fill: { color: f }, color: C.CHOC, fontSize: fs, bold: true, align: "left", valign: "middle" } },
+        { text: (i + 1) + ". " + (e.n || ""), options: { fill: { color: f }, color: C.CHOC, fontSize: fs, bold: true, align: "left", valign: "middle" } },
         { text: "", options: { fill: { color: f } } },
         { text: e.resp || "—", options: { fill: { color: f }, color: C.CHOC2, fontSize: fs, align: "left", valign: "middle" } },
         { text: e.prev || "—", options: { fill: { color: f }, color: C.CHOC2, fontSize: fs, align: "center", valign: "middle" } },
@@ -284,6 +292,24 @@
     }
   }
 
+  function slideObrigada(pptx) {
+    const s = pptx.addSlide();
+    s.background = { color: C.CHOC };
+    if (CAPA && CAPA.BG) s.addImage({ data: CAPA.BG, x: 0, y: 0, w: 13.333, h: 7.5 });
+    else {
+      s.addShape("ellipse", { x: 10.4, y: -1.6, w: 4.6, h: 4.6, fill: { color: "4A2E1E" }, line: NOLINE });
+      s.addShape("ellipse", { x: 11.5, y: 5.3, w: 3.4, h: 3.4, fill: { color: "472B1C" }, line: NOLINE });
+    }
+    s.addShape("rect", { x: 0, y: 7.34, w: 13.333, h: 0.16, fill: { color: C.GOLD }, line: NOLINE });
+    s.addText("Muito obrigada!", { x: 0.92, y: 2.55, w: 11.5, h: 1.3, fontSize: 54, bold: true, color: C.WHITE, fontFace: FONT, margin: 0, objectName: "av|1" });
+    s.addText("Divine Chocolates · Pesquisa & Desenvolvimento", { x: 0.95, y: 3.95, w: 10, h: 0.4, fontSize: 15, color: C.CREAMTXT, fontFace: FONT, margin: 0, objectName: "av|2" });
+    if (LOGO && LOGO.WORDMARK) {
+      const lh = 0.9, lw = lh * LOGO.WM_AR;
+      s.addImage({ data: LOGO.WORDMARK, x: 0.92, y: 5.55, w: lw, h: lh, objectName: "av|3" });
+      s.addText("CHOCOLATE DE VERDADE", { x: 0.92, y: 6.52, w: lw, h: 0.3, fontSize: 9.5, bold: true, color: C.CREAMTXT, fontFace: FONT, margin: 0, align: "center", charSpacing: 3, objectName: "av|3" });
+    }
+  }
+
   function build(PptxGenJS, state) {
     const pptx = new PptxGenJS();
     pptx.defineLayout({ name: "W16x9", width: 13.333, height: 7.5 });
@@ -295,6 +321,7 @@
       slideAcompanhamento(pptx, p);
       slideOrcamento(pptx, p);
     }
+    slideObrigada(pptx);
     return pptx;
   }
 
