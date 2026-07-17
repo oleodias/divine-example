@@ -70,6 +70,11 @@ textarea{height:auto;resize:vertical;min-height:76px;line-height:1.55;padding-to
 input[type=text]:focus,select:focus,textarea:focus{outline:0;border-color:var(--goldlt);box-shadow:0 0 0 3px rgba(224,165,58,.18)}
 select{cursor:pointer;font-weight:600;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A5238' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+/* campo só-leitura (data automática) — não parece uma caixa de edição */
+.rofield{height:40px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:9px 12px;border-radius:8px;background:var(--cream);border:1px dashed var(--line);
+  font-size:13.5px;font-weight:700;color:var(--choc2);cursor:default;user-select:none}
+.rofield .auto{font-size:10px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
 .grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
 .c6{grid-column:span 6}.c4{grid-column:span 4}.c3{grid-column:span 3}.c12{grid-column:span 12}
 
@@ -200,9 +205,9 @@ table.et{width:100%;border-collapse:collapse}
           <div class="c4"><label class="fl">Responsável</label>
             <input type="text" id="f_resp" oninput="P().resp=this.value;save()"></div>
           <div class="c4"><label class="fl">Data de abertura</label>
-            <input type="text" id="f_ab" placeholder="dd/mm/aaaa" oninput="P().abertura=this.value;save()"></div>
+            <input type="text" id="f_ab" inputmode="numeric" placeholder="dd/mm/aaaa" oninput="mascaraData(this);P().abertura=this.value;save()"></div>
           <div class="c4"><label class="fl">Atualizado em</label>
-            <input type="text" id="f_at" placeholder="dd/mm/aaaa" oninput="P().atualizado=this.value;save()"></div>
+            <div class="rofield" id="f_at" title="Preenchido automaticamente com a data de hoje"><span id="f_at_val">—</span><span class="auto">🔄 automático</span></div></div>
           <div class="c12"><label class="fl">🔎 Link da pesquisa de mercado</label>
             <input type="text" id="f_link" placeholder="https://… (cole o link da pesquisa deste projeto)" oninput="P().linkPesquisa=this.value;save()"></div>
         </div>
@@ -787,7 +792,7 @@ const ETAPAS_PADRAO = ["Pesquisa de mercado","Desenv. da formulação","Custo e 
 function novoProjeto(nome) {
   return {
     nome: nome || "Novo projeto", prioridade: "—", statusGeral: "PLANEJAMENTO",
-    resp: "", abertura: "", atualizado: "", linkPesquisa: "",
+    resp: "", abertura: "", atualizado: hoje(), linkPesquisa: "",
     etapas: ETAPAS_PADRAO.map(n => ({ n, st: "n", resp: "", prev: "" })),
     pend: [], acoes: [], obs: "",
     orc: { estimado: "", real: "", fornecedor: "", aprovacao: "", obs: "" },
@@ -797,7 +802,7 @@ function novoProjeto(nome) {
 const DEFAULT = { ciclo: "Julho / 2026", sel: 0, projects: [(() => {
   const p = novoProjeto("Barrinhas FOR FIT");
   p.prioridade = "ALTA"; p.statusGeral = "EM TESTE";
-  p.resp = "Paloma e Isabele"; p.abertura = "15/06/2026"; p.atualizado = "30/06/2026";
+  p.resp = "Paloma e Isabele"; p.abertura = "15/06/2026"; p.atualizado = hoje();
   const st = ["g","a","a","r","g","n","a","g","n","a","n","n","n"];
   const rp = ["Trade","P&D","Camila","Carla e Samuel","CQ","Mateus","P&D","Marketing","","P&D","","Marketing","Marketing"];
   p.etapas.forEach((e,i)=>{ e.st=st[i]; e.resp=rp[i]; });
@@ -810,6 +815,16 @@ const DEFAULT = { ciclo: "Julho / 2026", sel: 0, projects: [(() => {
 let state = load();
 // tira "9. " do texto (numeração virou automática) — idempotente
 function stripNum(n){ return (n||"").replace(/^\s*\d+\s*[\.\)]\s*(?:\.\s*)?/, "").trim(); }
+// data de hoje no formato dd/mm/aaaa
+function hoje(){ const d=new Date(), z=n=>String(n).padStart(2,"0"); return z(d.getDate())+"/"+z(d.getMonth()+1)+"/"+d.getFullYear(); }
+// máscara dd/mm/aaaa: insere as barras conforme digita
+function mascaraData(el){
+  let v=el.value.replace(/\D/g,"").slice(0,8);
+  let out=v;
+  if(v.length>4) out=v.slice(0,2)+"/"+v.slice(2,4)+"/"+v.slice(4);
+  else if(v.length>2) out=v.slice(0,2)+"/"+v.slice(2);
+  el.value=out;
+}
 function migrate(s) {
   (s.projects || []).forEach(p => {
     if (!p.imgs) p.imgs = p.img ? [p.img] : [];
@@ -891,7 +906,8 @@ function renderForm() {
   paintSG();
   document.getElementById("f_resp").value = p.resp || "";
   document.getElementById("f_ab").value = p.abertura || "";
-  document.getElementById("f_at").value = p.atualizado || "";
+  p.atualizado = hoje();                                   // "atualizado em" = sempre hoje
+  document.getElementById("f_at_val").textContent = p.atualizado;
   document.getElementById("f_link").value = p.linkPesquisa || "";
   document.getElementById("f_pend").value = (p.pend || []).join("\n");
   document.getElementById("f_acoes").value = (p.acoes || []).join("\n");
@@ -1027,6 +1043,8 @@ function medeTodasImagens() {
 }
 function baixarPPTX() {
   toast("Gerando PowerPoint…");
+  state.projects.forEach(p => p.atualizado = hoje());   // "atualizado em" = data da geração
+  save();
   medeTodasImagens().then(arMap => {
     const pptx = DivineExport.build(PptxGenJS, state, arMap);
     const podeAnimar = typeof DivineAnim !== "undefined" && typeof JSZip !== "undefined";
