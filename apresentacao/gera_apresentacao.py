@@ -10,6 +10,7 @@ Gera um .pptx 16:9 totalmente editável:
   6. Como usar + legenda
 """
 import os
+from datetime import date
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
@@ -414,7 +415,7 @@ etapas_forfit = [(ETAPAS_PADRAO[i], _st_forfit[i], _rp_forfit[i], _pv_forfit[i])
                  for i in range(len(ETAPAS_PADRAO))]
 slide_acompanhamento(
     "Barrinhas FOR FIT", "ALTA", "EM TESTE", AB, AD,
-    "Paloma e Isabele", "15/06/2026", "30/06/2026",
+    "Paloma e Isabele", "15/06/2026", date.today().strftime("%d/%m/%Y"),
     etapas_forfit,
     ["Aguardar fechamento de formulação;", "Moinho de rolos;"],
     ["Concluir ajustes no moinho de rolos;", "Fechar formulações;"],
