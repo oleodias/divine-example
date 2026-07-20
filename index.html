@@ -96,6 +96,9 @@ table.et{width:100%;border-collapse:collapse}
 .et input[type=text]{border-color:transparent;background:transparent;height:36px;padding:6px 8px;border-radius:6px}
 .et input[type=text]:hover{border-color:var(--line)}
 .et input[type=text]:focus{background:#fff;border-color:var(--goldlt)}
+.et select.respsel{border-color:transparent;background-color:transparent;height:36px;padding-top:6px;padding-bottom:6px;font-weight:400;font-size:12.5px;color:var(--ink)}
+.et select.respsel:hover{border-color:var(--line)}
+.et select.respsel:focus{background-color:#fff;border-color:var(--goldlt);box-shadow:none}
 .et .num{width:30px;text-align:center;font-size:11px;font-weight:700;color:var(--mute)}
 .et .cst{width:64px;text-align:center}
 .et .cdel{width:34px;text-align:center}
@@ -783,6 +786,21 @@ const KEY = "divine_editor_v1";
 const ORDER = ["n", "a", "g", "r"];
 const SYM = { n: "", a: "◐", g: "✓", r: "!" };
 const MAX_IMGS = 6;
+// opções fixas de responsável (select). Valores fora da lista são preservados.
+const RESP_OPCOES = ["P&D", "Compras", "Marketing", "Produção e Manutenção", "Produção",
+  "Manutenção", "Comercial", "CQ", "Fiscal (Cami)"];
+function respSelect(i, val) {
+  val = val || "";
+  let opts = `<option value=""${val === "" ? " selected" : ""}>—</option>`;
+  let conhecido = false;
+  for (const o of RESP_OPCOES) {
+    const sel = o === val ? " selected" : "";
+    if (o === val) conhecido = true;
+    opts += `<option value="${esc(o)}"${sel}>${esc(o)}</option>`;
+  }
+  if (val && !conhecido) opts += `<option value="${esc(val)}" selected>${esc(val)}</option>`;   // preserva o valor atual
+  return `<select class="respsel" onchange="P().etapas[${i}].resp=this.value;save()">${opts}</select>`;
+}
 // nomes SEM número — a numeração (01, 02…) é automática e segue a ordem
 const ETAPAS_PADRAO = ["Pesquisa de mercado","Desenv. da formulação","Custo e preço de venda",
   "Viabilidade produtiva/teste em linha","Homologação","Volume (comercial)","Engenharias e FTs",
@@ -930,7 +948,7 @@ function renderEtapas() {
         <span class="grip">⠿</span><b>${String(i + 1).padStart(2, "0")}</b></td>
       <td><input type="text" value="${esc(e.n)}" placeholder="Nome da etapa" oninput="P().etapas[${i}].n=this.value;save()"></td>
       <td class="cst"><button class="stbtn ${e.st}" title="Clique para mudar o status" onclick="cycleSt(${i})">${SYM[e.st]}</button></td>
-      <td><input type="text" value="${esc(e.resp)}" placeholder="—" oninput="P().etapas[${i}].resp=this.value;save()"></td>
+      <td>${respSelect(i, e.resp)}</td>
       <td><input type="text" value="${esc(e.prev)}" placeholder="—" oninput="P().etapas[${i}].prev=this.value;save()"></td>
       <td class="cdel"><button class="rowdel" title="Remover etapa" onclick="delEtapa(${i})">×</button></td>
     </tr>`).join("");
