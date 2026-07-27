@@ -786,19 +786,28 @@ const KEY = "divine_editor_v1";
 const ORDER = ["n", "a", "g", "r"];
 const SYM = { n: "", a: "◐", g: "✓", r: "!" };
 const MAX_IMGS = 6;
-// opções fixas de responsável (select). Valores fora da lista são preservados.
-const RESP_OPCOES = ["P&D", "Compras", "Marketing", "Produção e Manutenção", "Produção",
+// opções fixas de responsável (select)
+const RESP_OPCOES = ["P&D", "Compras", "Marketing", "Trade", "Produção e Manutenção", "Produção",
   "Manutenção", "Comercial", "CQ", "Fiscal (Cami)"];
+// responsáveis já usados em qualquer projeto que não estão na lista fixa —
+// continuam disponíveis para escolher em TODAS as etapas, inclusive em projetos novos
+function respExtras() {
+  const set = new Set();
+  (state.projects || []).forEach(p => (p.etapas || []).forEach(e => {
+    const r = (e.resp || "").trim();
+    if (r && !RESP_OPCOES.includes(r)) set.add(r);
+  }));
+  return [...set].sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
 function respSelect(i, val) {
   val = val || "";
+  const opt = o => `<option value="${esc(o)}"${o === val ? " selected" : ""}>${esc(o)}</option>`;
   let opts = `<option value=""${val === "" ? " selected" : ""}>—</option>`;
-  let conhecido = false;
-  for (const o of RESP_OPCOES) {
-    const sel = o === val ? " selected" : "";
-    if (o === val) conhecido = true;
-    opts += `<option value="${esc(o)}"${sel}>${esc(o)}</option>`;
-  }
-  if (val && !conhecido) opts += `<option value="${esc(val)}" selected>${esc(val)}</option>`;   // preserva o valor atual
+  opts += RESP_OPCOES.map(opt).join("");
+  const extras = respExtras();
+  if (extras.length) opts += `<optgroup label="Já usados nos projetos">${extras.map(opt).join("")}</optgroup>`;
+  // rede de segurança: valor atual que não caiu em nenhuma das listas nunca se perde
+  if (val && !RESP_OPCOES.includes(val) && !extras.includes(val)) opts += opt(val);
   return `<select class="respsel" onchange="P().etapas[${i}].resp=this.value;save()">${opts}</select>`;
 }
 // nomes SEM número — a numeração (01, 02…) é automática e segue a ordem
