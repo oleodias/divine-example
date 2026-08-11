@@ -15,8 +15,30 @@ if (fs.existsSync("divine_capa.js")) {                      // foto de capa, se 
   exp = fs.readFileSync("divine_capa.js", "utf8") + "\n" + exp;
   console.log("foto de capa embutida");
 }
-const tag = (js) => "<script>" + js + "</" + "script>";
+// imagens da animação: entram ANTES do script principal, porque aplicaLogo()
+// usa DivineIntroAssets.WORD no #logoTop (mesma imagem do voo = pouso no pixel)
+if (fs.existsSync("divine_intro_assets.js")) {
+  exp = fs.readFileSync("divine_intro_assets.js", "utf8") + "\n" + exp;
+}
+// escapa "</script" para o parser do HTML não fechar a tag no meio do código
+// (o divine-intro.js traz "</script>" dentro de um comentário). Em JS, "<\/script"
+// é idêntico a "</script", então o comportamento não muda.
+const tag = (js) => "<script>" + String(js).replace(/<\/script/gi, "<\\/script") + "</" + "script>";
 html = html.replace("<!--PPTXGEN-->", () => tag(bundle) + "\n" + tag(jszip));
 html = html.replace("<!--EXPORT-->", () => tag(exp));
+
+// ---- animação de entrada (última coisa do <body>, conforme o guia) ----
+let intro = "";
+if (fs.existsSync("divine-intro.js")) {
+  // a caligrafia do voo é a MESMA imagem do #logoTop -> o pouso fecha no pixel
+  const cfg =
+    'window.DIVINE_INTRO={tagTop:0.905,' +
+    'word:(window.DivineIntroAssets&&DivineIntroAssets.WORD)||"divine-word.png",' +
+    'tagline:(window.DivineIntroAssets&&DivineIntroAssets.TAGLINE)||"divine-tagline.png"' +
+    '};';
+  intro = tag(cfg) + "\n" + tag(fs.readFileSync("divine-intro.js", "utf8"));
+  console.log("animação de entrada embutida");
+}
+html = html.replace("<!--INTRO-->", () => intro);
 fs.writeFileSync("Editor_Divine.html", html);
 console.log("Editor_Divine.html gerado:", (fs.statSync("Editor_Divine.html").size / 1024).toFixed(0), "KB");
