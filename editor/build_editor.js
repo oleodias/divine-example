@@ -32,7 +32,8 @@ let intro = "";
 if (fs.existsSync("divine-intro.js")) {
   // a caligrafia do voo é a MESMA imagem do #logoTop -> o pouso fecha no pixel
   const cfg =
-    'window.DIVINE_INTRO={tagTop:0.905,' +
+    // oncePerSession:false -> a animação toca a cada acesso/recarregamento
+    'window.DIVINE_INTRO={tagTop:0.905,oncePerSession:false,' +
     'word:(window.DivineIntroAssets&&DivineIntroAssets.WORD)||"divine-word.png",' +
     'tagline:(window.DivineIntroAssets&&DivineIntroAssets.TAGLINE)||"divine-tagline.png"' +
     '};';
