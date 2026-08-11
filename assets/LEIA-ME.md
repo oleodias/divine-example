@@ -28,3 +28,19 @@ ficar legível e aplica a capa na apresentação. A capa entra só no slide de
 capa; os slides de conteúdo seguem limpos para facilitar a leitura.
 
 <!-- redeploy 20260703T182208Z -->
+
+---
+
+# Animação de entrada (opcional)
+
+Arte da animação que toca ao abrir a página:
+
+| Arquivo | O que é |
+|---|---|
+| `divine-word.png` | A caligrafia "Divine" recortada no traço |
+| `divine-tagline.png` | "Chocolate de Verdade", também recortado |
+
+Mesmo processo de upload das imagens acima. Depois avise o Claude — ele roda
+`editor/processa_intro.py`, que ajusta a proporção da caligrafia (o
+`divine-intro.js` espera 3.1761), recolore a tagline para o dourado da marca e
+embute as duas na página como data-URI, mantendo o arquivo único e offline.

@@ -612,7 +612,10 @@ function toast(msg) {
 function aplicaLogo() {
   if (typeof DivineLogo === "undefined" || !DivineLogo || !DivineLogo.WORDMARK) return;
   const top = document.getElementById("logoTop"), foot = document.getElementById("logoFoot");
-  top.src = DivineLogo.WORDMARK; top.style.display = "block";
+  // usa a mesma imagem da animação de entrada (proporção casada) quando existir,
+  // para a caligrafia do voo pousar exatamente sobre o logo real
+  top.src = (window.DivineIntroAssets && DivineIntroAssets.WORD) || DivineLogo.WORDMARK;
+  top.style.display = "block";
   document.getElementById("logoFallback").style.display = "none";
   foot.src = DivineLogo.FULL || DivineLogo.WORDMARK; foot.style.display = "block";
   document.getElementById("wmFallback").style.display = "none";
@@ -621,5 +624,6 @@ function renderAll() { renderList(); renderForm(); }
 aplicaLogo();
 renderAll();
 </script>
+<!--INTRO-->
 </body>
 </html>
