@@ -125,12 +125,24 @@ As mudanças entram por *Pull Request* e cada versão estável recebe uma *tag*
 
 ## 👨‍💻 Desenvolvedor
 
-**Leonardo Dias** · [@oleodias](https://github.com/oleodias)<br>
-Idealização e desenvolvimento
-
-Projeto desenvolvido para a área de **Pesquisa & Desenvolvimento da Divine Chocolates**.
-
 <div align="center">
+
+<table>
+<tr>
+<td align="center" width="420">
+<br>
+<h3>Leonardo Dias</h3>
+<sub>IDEALIZAÇÃO E DESENVOLVIMENTO</sub>
+<br><br>
+<a href="https://github.com/oleodias"><img src="https://img.shields.io/badge/GitHub-@oleodias-E0A33A?style=for-the-badge&logo=github&logoColor=white&labelColor=181717" alt="GitHub @oleodias"></a>
+<br><br>
+</td>
+</tr>
+</table>
+
+Projeto desenvolvido para a área de **Pesquisa & Desenvolvimento** da **Divine Chocolates**.
+
 <br>
 <sub>© 2026 Leonardo Dias</sub>
+
 </div>
