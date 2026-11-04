@@ -131,8 +131,7 @@ As mudanças entram por *Pull Request* e cada versão estável recebe uma *tag*
 <tr>
 <td align="center" width="420">
 <br>
-<img src="docs/img/assinatura.png" alt="Leonardo Dias" width="300">
-<br>
+<h3>Leonardo Dias</h3>
 <sub>IDEALIZAÇÃO E DESENVOLVIMENTO</sub>
 <br><br>
 <a href="https://github.com/oleodias"><img src="https://img.shields.io/badge/GitHub-@oleodias-E0A33A?style=for-the-badge&logo=github&logoColor=white&labelColor=181717" alt="GitHub @oleodias"></a>
