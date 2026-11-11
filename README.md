@@ -113,9 +113,8 @@ com bibliotecas, logo e animações embutidas:
 
 ```bash
 cd editor
-npm install pptxgenjs jszip
-node build_editor.js            # gera Editor_Divine.html
-cp Editor_Divine.html ../index.html
+npm ci          # instala as versões fixadas no package-lock.json
+npm run build   # gera Editor_Divine.html e atualiza o ../index.html
 ```
 
 Ao publicar na `main`, o **GitHub Pages** atualiza o site automaticamente.
