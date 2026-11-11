@@ -32,6 +32,31 @@
     "CANCELADO":     { fill: C.R,      tc: C.WHITE },
   };
 
+  // grupos do portfólio pelo "Status geral" — mesma regra no editor e na apresentação
+  const GRUPOS = [
+    { id: "ativos",      nome: "Em andamento", status: ["EM ANDAMENTO", "EM TESTE", "PLANEJAMENTO"] },
+    { id: "pausados",    nome: "Pausados",     status: ["PAUSADO"] },
+    { id: "finalizados", nome: "Finalizados",  status: ["CONCLUÍDO"] },
+    { id: "cancelados",  nome: "Cancelados",   status: ["CANCELADO"] },
+  ];
+  const PRI_ORDEM = { "ALTA": 0, "MÉDIA": 1, "BAIXA": 2 };
+  // status desconhecido cai em "ativos": nenhum projeto some da pauta por engano
+  function grupoDe(p) {
+    const sg = (p && p.statusGeral) || "PLANEJAMENTO";
+    const g = GRUPOS.find(g => g.status.indexOf(sg) >= 0);
+    return g ? g.id : "ativos";
+  }
+  function ordemPri(p) { const v = PRI_ORDEM[p && p.prioridade]; return v == null ? 3 : v; }
+  // { ativos: [{p, i}], pausados: [...], ... } — i = índice real em projects.
+  // "Em andamento" é ordenado por prioridade; empate mantém a ordem manual.
+  function agrupa(projects) {
+    const out = {};
+    GRUPOS.forEach(g => { out[g.id] = []; });
+    (projects || []).forEach((p, i) => out[grupoDe(p)].push({ p, i }));
+    out.ativos.sort((a, b) => ordemPri(a.p) - ordemPri(b.p) || a.i - b.i);
+    return out;
+  }
+
   function pillOpts(x, y, w, h, fill, tc, size, extra) {
     return Object.assign({
       shape: "roundRect", rectRadius: h / 2.6, x, y, w, h,
@@ -336,6 +361,41 @@
     }
   }
 
+  // resumo dos projetos fora da pauta: pausados, finalizados e cancelados (só os nomes)
+  function slideDemais(pptx, g) {
+    const s = pptx.addSlide();
+    s.background = { color: C.CREAM };
+    header(s, "VISÃO GERAL DO PORTFÓLIO", "Pausados, finalizados e cancelados");
+    const cols = [
+      ["PAUSADOS",    g.pausados,    C.N, C.ND, "‖"],
+      ["FINALIZADOS", g.finalizados, C.G, C.GD, "✓"],
+      ["CANCELADOS",  g.cancelados,  C.R, C.R,  "×"],
+    ];
+    const gap = 0.2, x0 = 0.35, w = (12.63 - 2 * gap) / 3, y = 1.30, h = 5.60;
+    const MAX = 26;
+    cols.forEach(([titulo, itens, cor, tc, sym], k) => {
+      const nm = "av|" + (k + 1), x = x0 + k * (w + gap);
+      card(s, x, y, w, h, nm);
+      iconCircle(s, x + 0.26, y + 0.22, cor, sym, nm);
+      s.addText(titulo + "  (" + itens.length + ")", { x: x + 0.63, y: y + 0.235, w: w - 0.8, h: 0.26, fontSize: 11.5, bold: true, color: tc, fontFace: FONT, margin: 0, objectName: nm });
+      const lx = x + 0.30, ly = y + 0.70, lw = w - 0.55, lh = h - 0.95;
+      if (!itens.length) {
+        s.addText("Nenhum projeto", { x: lx, y: ly, w: lw, h: 0.3, fontSize: 10.5, italic: true, color: C.MUTE, fontFace: FONT, margin: 0, objectName: nm });
+        return;
+      }
+      const nomes = itens.slice(0, MAX).map(({ p }) => p.nome || "(sem nome)");
+      if (itens.length > MAX) nomes.push("+ " + (itens.length - MAX) + " outros");
+      const fs = nomes.length > 18 ? 8.5 : nomes.length > 12 ? 9.5 : 10.5;
+      const paras = [];
+      nomes.forEach(t => {
+        paras.push({ text: "•  ", options: { bold: true, color: C.GOLD, breakLine: false } });
+        paras.push({ text: t, options: { color: C.CHOC2, breakLine: true } });
+      });
+      s.addText(paras, { x: lx, y: ly, w: lw, h: lh, fontSize: fs, fontFace: FONT, margin: 0, paraSpaceAfter: 3, valign: "top", objectName: nm });
+    });
+    footer(s, false);
+  }
+
   function build(PptxGenJS, state, arMap) {
     const pptx = new PptxGenJS();
     pptx.defineLayout({ name: "W16x9", width: 13.333, height: 7.5 });
@@ -343,13 +403,16 @@
     pptx.author = "Divine Chocolates — P&D";
     pptx.title = "Acompanhamento de Projetos";
     slideCapa(pptx, state.ciclo);
-    for (const p of state.projects) {
+    const g = agrupa(state.projects);
+    // projetos em andamento: slides completos, na ordem de prioridade
+    for (const { p } of g.ativos) {
       slideAcompanhamento(pptx, p);
       slideOrcamento(pptx, p, arMap);
     }
+    if (g.pausados.length || g.finalizados.length || g.cancelados.length) slideDemais(pptx, g);
     slideObrigada(pptx);
     return pptx;
   }
 
-  return { build, STATUS_GERAL, justifiedLayout };
+  return { build, STATUS_GERAL, justifiedLayout, GRUPOS, grupoDe, agrupa };
 });
