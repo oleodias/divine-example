@@ -1,0 +1,12 @@
+{
+  "name": "divine-editor",
+  "private": true,
+  "description": "Build do editor Divine (arquivo único index.html)",
+  "scripts": {
+    "build": "node build_editor.js && cp Editor_Divine.html ../index.html"
+  },
+  "dependencies": {
+    "jszip": "3.10.1",
+    "pptxgenjs": "4.0.1"
+  }
+}

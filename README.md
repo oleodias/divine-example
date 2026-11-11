@@ -43,6 +43,7 @@ e funciona até offline.
 | | Recurso | Detalhes |
 |---|---|---|
 | 📋 | **Portfólio de projetos** | Crie, duplique, exclua e **reordene arrastando**. A numeração é automática. |
+| 🗂️ | **Portfólio por status** | Projetos separados em **Em andamento** (ordenados por prioridade), **Pausados**, **Finalizados** e **Cancelados**, em grupos recolhíveis. Nada é apagado: basta mudar o *Status geral*. |
 | 🗓️ | **Cronograma de etapas** | Etapas com responsável e prazo. Clique na bolinha para alternar o status. |
 | 🚦 | **Status visual** | ✓ Concluído · ◐ Em andamento · ! Bloqueado · ○ Não iniciado |
 | 👥 | **Responsáveis** | Lista com as áreas (P&D, Compras, Marketing, Trade, Produção…) e os nomes já usados. |
@@ -51,7 +52,7 @@ e funciona até offline.
 | 💰 | **Orçamento** | Custo estimado × real, fornecedores, aprovação e observações. |
 | 🖼️ | **Galeria de fotos** | Layout justificado que **respeita a proporção** de cada imagem, sem distorcer. |
 | 🔎 | **Pesquisa de mercado** | Link clicável direto no slide do projeto. |
-| ⬇️ | **Gerar PowerPoint** | `.pptx` nativo, editável, com transições *fade* e entradas em cascata. |
+| ⬇️ | **Gerar PowerPoint** | `.pptx` nativo, editável, com transições *fade* e entradas em cascata. Slides completos só dos projetos em andamento, mais um **resumo** dos pausados, finalizados e cancelados. |
 | 💾 | **Salvamento automático** | Os dados ficam no navegador. **Exportar/Importar dados** (JSON) serve para backup e para compartilhar. |
 | ✨ | **Animação de entrada** | A caligrafia "Divine" desenhada em dourado a cada acesso, com botão **Pular**. |
 
@@ -112,9 +113,8 @@ com bibliotecas, logo e animações embutidas:
 
 ```bash
 cd editor
-npm install pptxgenjs jszip
-node build_editor.js            # gera Editor_Divine.html
-cp Editor_Divine.html ../index.html
+npm ci          # instala as versões fixadas no package-lock.json
+npm run build   # gera Editor_Divine.html e atualiza o ../index.html
 ```
 
 Ao publicar na `main`, o **GitHub Pages** atualiza o site automaticamente.

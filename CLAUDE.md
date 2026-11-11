@@ -39,7 +39,8 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
 
 ## Arquitetura (resumo)
 - `index.html` = cópia do `editor/Editor_Divine.html` gerado. **Nunca edite o `index.html` à mão.**
-- Build: `cd editor && npm install pptxgenjs jszip && node build_editor.js && cp Editor_Divine.html ../index.html`.
+- Build: `cd editor && npm ci && npm run build` (versões fixadas no `package.json`/`package-lock.json`;
+  não use `npm install <pacote>`, que pode trocar a versão das bibliotecas).
 - `build_editor.js` embute as bibliotecas e os módulos nos marcadores `<!--PPTXGEN-->`, `<!--EXPORT-->` e `<!--INTRO-->`.
   A função `tag()` escapa `</script` — não remova.
 - Dados no `localStorage` + exportar/importar JSON. `migrate()` precisa continuar idempotente.
