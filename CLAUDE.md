@@ -45,6 +45,26 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
   A função `tag()` escapa `</script` — não remova.
 - Dados no `localStorage` + exportar/importar JSON. `migrate()` precisa continuar idempotente.
 
+## Ponto de retorno (combinado com o Leonardo)
+- A tag **`v1.2-estavel`** é a última versão SEM nuvem (GitHub Pages + localStorage + JSON). Nunca apague.
+- Se a nuvem der problema: (1) **Exportar dados** no editor; (2) reverter a PR da nuvem
+  (botão *Revert* no GitHub); (3) **Importar dados** — o JSON é o mesmo formato da v1.2.
+- O formato do JSON de exportação **não pode mudar**: campos auxiliares da nuvem começam com `_`
+  e são removidos na exportação, na duplicação e na importação.
+
+## Nuvem (Supabase)
+- Projeto `divine-pd` (São Paulo). URL e chave **publicável** ficam em `editor/divine_nuvem.js`.
+  A chave secreta/service_role **nunca** entra no código.
+- Esquema e regras de segurança: `supabase/schema.sql` (idempotente; rodar no SQL Editor).
+- Portfólio da **equipe**: um registro por projeto, `versao` evita sobrescrever edição alheia;
+  conflito vira cópia "(sua versão)". Excluir = lixeira (`excluido_em`); só some ao esvaziar.
+- Usuários: cadastro público desligado; o admin cria em Authentication → Users → Add user
+  (Auto Confirm). Todo usuário criado vira membro (trigger `novo_membro`).
+- Modo "só neste computador" continua existindo (chave `divine_editor_v1`); o modo nuvem usa
+  `divine_editor_nuvem_v1` como cópia offline.
+- O build ajusta o `publicPath` do pacote UMD do supabase-js (ver `build_editor.js`).
+- `.github/workflows/supabase-ativo.yml` faz ping 2x/semana para o plano gratuito não pausar.
+
 ## Cuidados conhecidos
 - `#logoFallback` e `#wmFallback` precisam existir no HTML (usados por `aplicaLogo()`).
 - A caligrafia da animação usa proporção **3.1761** (WORD_AR) para pousar no pixel exato do `#logoTop`.
