@@ -55,6 +55,11 @@ e funciona até offline.
 | ⬇️ | **Gerar PowerPoint** | `.pptx` nativo, editável, com transições *fade* e entradas em cascata. Slides completos só dos projetos em andamento, mais um **resumo** dos pausados, finalizados e cancelados. |
 | 💾 | **Salvamento automático** | Os dados ficam no navegador. **Exportar/Importar dados** (JSON) serve para backup e para compartilhar. |
 | ✨ | **Animação de entrada** | A caligrafia "Divine" desenhada em dourado a cada acesso, com botão **Pular**. |
+| 📈 | **Progresso das etapas** | Barra em cada projeto da lista e selo **"X de Y concluídas"** no editor e no slide. |
+| ↩️ | **Desfazer** | Removeu uma etapa, foto ou projeto sem querer? O aviso traz o botão **Desfazer**. |
+| ✅ | **Validação de datas** | Datas impossíveis (ex.: 31/02) são sinalizadas logo abaixo do campo. |
+| ♿ | **Acessível** | Contraste adequado, navegação por teclado (Tab, Enter, Alt+↑/↓ nas etapas) e foco visível. |
+| 🎨 | **Visual Divine** | Títulos em Fraunces, textos em Inter (embutidas, funcionam offline) e selects no estilo da marca. |
 
 ---
 
@@ -67,7 +72,7 @@ e funciona até offline.
 </tr>
 <tr>
 <td width="50%"><img src="docs/img/slide-3.jpg" alt="Imagens e orçamento"><br><sub><b>Imagens e orçamento</b> do produto</sub></td>
-<td width="50%"><img src="docs/img/slide-4.jpg" alt="Encerramento"><br><sub><b>Encerramento:</b> agradecimento</sub></td>
+<td width="50%"><img src="docs/img/slide-4.jpg" alt="Resumo do portfólio"><br><sub><b>Resumo:</b> pausados, finalizados e cancelados</sub></td>
 </tr>
 </table>
 
