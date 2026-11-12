@@ -282,6 +282,41 @@ input.erro{border-color:#D9483B!important;box-shadow:0 0 0 3px rgba(217,72,59,.1
 .toast .undo:active{transform:scale(.96)}
 @media (hover:hover) and (pointer:fine){.toast .undo:hover{background:rgba(244,190,82,.28)}}
 
+/* selects no estilo Divine — select customizável (Chrome/Edge 135+); outros navegadores mantêm o select nativo */
+@supports (appearance: base-select){
+  select, ::picker(select){appearance:base-select}
+  select{background-image:none;display:flex;align-items:center;gap:8px}
+  select::picker-icon{content:"";width:10px;height:6px;background:currentColor;opacity:.7;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='black' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center;
+    transition:rotate 200ms var(--ease-out)}
+  select:open::picker-icon{rotate:180deg}
+  select:open{border-color:var(--goldlt);box-shadow:0 0 0 3px rgba(224,165,58,.18)}
+  ::picker(select){border:1px solid #EADFC8;border-radius:12px;padding:6px;margin-top:6px;background:#fff;
+    box-shadow:0 14px 34px -10px rgba(62,36,25,.32),0 2px 6px rgba(62,36,25,.06);
+    opacity:1;transform:translateY(0) scale(1);transform-origin:top center;
+    transition:opacity 160ms var(--ease-out),transform 160ms var(--ease-out),display 160ms allow-discrete,overlay 160ms allow-discrete}
+  @starting-style{::picker(select):popover-open{opacity:0;transform:translateY(-4px) scale(.97)}}
+  option{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;font-weight:500;
+    color:var(--ink);background:transparent;cursor:pointer;transition:background-color 100ms ease}
+  option:hover,option:focus-visible{background:var(--cream);outline:0}
+  option:checked{background:#FBEFD3;font-weight:700;color:#5A3A0A}
+  option::checkmark{order:3;margin-left:auto;content:"✓";color:#DE9A2B;font-weight:800}
+  optgroup{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);padding:8px 6px 2px;
+    border-top:1px solid var(--line2);margin-top:4px}
+  /* bolinha colorida em cada status geral */
+  #f_sg option::before{content:"";width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 0 3px rgba(0,0,0,.04)}
+  #f_sg option:nth-child(1)::before{background:#E0A53A}
+  #f_sg option:nth-child(2)::before{background:#43A047}
+  #f_sg option:nth-child(3)::before{background:#CDBDA4}
+  #f_sg option:nth-child(4)::before{background:#F2C14E}
+  #f_sg option:nth-child(5)::before{background:#B9A58A}
+  #f_sg option:nth-child(6)::before{background:#D9483B}
+  optgroup option{text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:500;color:var(--ink);padding-left:12px}
+  optgroup option:checked{font-weight:700;color:#5A3A0A}
+  .et select.respsel::picker(select){min-width:220px;max-height:min(420px,70vh)}
+}
+@media (prefers-reduced-motion:reduce){::picker(select){transition:none}select::picker-icon{transition:none}}
+
 /* foco visível só para teclado */
 .btn:focus-visible,.pitem:focus-visible,.pgrp:focus-visible,.stbtn:focus-visible,.rowdel:focus-visible,
 .addtile:focus-visible,.thumb .x:focus-visible,.toast .undo:focus-visible{outline:0;box-shadow:var(--ring)}
