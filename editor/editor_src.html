@@ -3,17 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--FONTS-->
 <title>Divine P&D · Acompanhamento de Projetos</title>
 <style>
 :root{
   --choc:#3E2419; --choc2:#5A3A2A; --choc3:#7A5238; --gold:#C9932E; --goldlt:#E0A53A;
   --bg:#F4EFE4; --card:#FFFFFF; --cream:#FAF6EC; --cream2:#F4EAD7; --line:#E6DCC6; --line2:#EFE7D4;
-  --ink:#2A1B12; --mute:#9C8C72;
+  --ink:#2A1B12; --mute:#776650;   /* cinza-cacau: contraste ≥ 4,5:1 */
   --g:#43A047; --gd:#2E7D32; --a:#E0A53A; --ad:#9A6A12; --r:#C0392F; --rd:#B23A2A; --n:#CDBDA4; --nd:#8A7A66;
   /* curvas de animação: ease-out forte p/ resposta imediata; ease-in-out p/ movimento na tela */
   --ease-out:cubic-bezier(.23,1,.32,1); --ease-in-out:cubic-bezier(.77,0,.175,1);
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",-apple-system,"Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Inter","Segoe UI",-apple-system,"Helvetica Neue",Arial,sans-serif}
 body{background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px}
 
 /* ============ TOPO ============ */
@@ -175,6 +176,118 @@ table.et{width:100%;border-collapse:collapse}
 }
 @media(max-width:1020px){.wrap{grid-template-columns:1fr}.side{position:static}
   .c6,.c4,.c3{grid-column:span 12}.thumbs{grid-template-columns:repeat(2,1fr)}}
+
+/* =====================================================================
+   REPAGINADA v2 — tipografia Fraunces + Inter, cores mais vivas,
+   acessibilidade (contraste, foco, teclado, alvos de toque)
+   ===================================================================== */
+:root{
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --gold-grad:linear-gradient(180deg,#F4BE52 0%,#DE9A2B 100%);
+  --shadow-1:0 1px 2px rgba(62,36,25,.05),0 6px 20px -8px rgba(62,36,25,.10);
+  --ring:0 0 0 3px rgba(224,165,58,.45);
+}
+body{font-size:14.5px;-webkit-font-smoothing:antialiased;font-feature-settings:"cv11","ss01";
+  background:radial-gradient(1100px 520px at 100% -8%,#F7E6C4 0%,rgba(247,230,196,0) 62%),var(--bg)}
+
+/* topo: chocolate com profundidade e filete dourado vivo */
+.topbar{background:linear-gradient(180deg,#4B2C1F 0%,#3A2117 100%);border-bottom:0;
+  box-shadow:0 2px 14px rgba(42,23,4,.25)}
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:3px;
+  background:linear-gradient(90deg,#B98322,#F6CB6B 50%,#B98322)}
+.tt h1{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:.1px;line-height:1.15}
+.tt .sub{font-size:11px;color:#D9C3A1;letter-spacing:1.6px}
+
+/* botões */
+.btn{font-size:13.5px;font-weight:600;letter-spacing:.1px;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn.primary{background:var(--gold-grad);color:#2A1704;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 1px 2px rgba(62,36,25,.25),0 4px 12px -4px rgba(222,154,43,.6)}
+.btn.ghost{color:#F1E3CB;border-color:rgba(241,227,203,.28);background:rgba(255,255,255,.04)}
+@media (hover:hover) and (pointer:fine){.btn.ghost:hover{filter:none;background:rgba(255,255,255,.10);border-color:rgba(241,227,203,.5)}}
+.btn.sm{font-size:12.5px}
+.btn.link{color:var(--rd);font-weight:600}
+.ic{width:1.05em;height:1.05em;flex:none;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* painéis: cartões com leve elevação e títulos serifados */
+.panel{border-color:#EADFC8;border-radius:14px;box-shadow:var(--shadow-1)}
+.phead{align-items:center;padding:16px 22px 14px}
+.phead b{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.1px;text-transform:none;color:var(--choc)}
+.phead .n{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:22px;padding:0 7px;border-radius:7px;
+  background:var(--gold-grad);color:#2A1704;font-size:11.5px;font-weight:800;letter-spacing:.3px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.phead .hint{font-size:12px}
+
+/* rótulos e textos de apoio: maiores e legíveis */
+.fl{font-size:11px;font-weight:700;letter-spacing:.9px;margin-bottom:7px}
+.imghint{font-size:12.5px;line-height:1.6}
+input[type=text],select,textarea{font-size:14px}
+input[type=text],.rofield,.et .num,.thumbs{font-variant-numeric:tabular-nums}
+.rofield .auto{display:inline-flex;align-items:center;gap:5px;font-size:10.5px}
+
+/* portfólio */
+.pitem{position:relative;padding:11px 12px 13px;border-radius:0 10px 10px 0}
+.pitem .pname{font-size:13.5px}
+.pitem.sel{background:linear-gradient(90deg,#FBEFD3 0%,#FDF8EE 100%);border-left-color:#DE9A2B}
+.pitem .st{width:10px;height:10px;box-shadow:0 0 0 3px rgba(255,255,255,.9),0 0 0 4px rgba(62,36,25,.08)}
+.pitem.arq .pname{color:var(--mute)}
+.pbar{position:absolute;left:34px;right:14px;bottom:5px;height:3px;border-radius:3px;background:#F0E6D2;overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#43A047,#7CC36B);
+  transition:width 320ms var(--ease-out)}
+.pitem.arq .pbar{opacity:.55}
+.pgrp{font-size:10.5px;letter-spacing:1.1px}
+.pgrp .n{background:#FBEFD3;color:#8A5D0C;font-weight:800}
+
+/* status geral: cores mais vivas e com contraste */
+.sg-EM_ANDAMENTO{background:#FCEBC4;color:#7E540A;border-color:#EFCB7E}
+.sg-CONCLUÍDO{background:#DDF0D9;color:#1F6A25;border-color:#A8D6A0}
+.sg-PAUSADO{background:#EEE6D6;color:#665640;border-color:#D6C8AC}
+.sg-EM_TESTE{background:#FFF0CC;color:#7A520A;border-color:#F0CF83}
+.sg-PLANEJAMENTO{background:#F3E7D2;color:#4E3122;border-color:#E2D3B6}
+.sg-CANCELADO{background:#F9DDD6;color:#9C2A1D;border-color:#EDB2A6}
+
+/* tabela de etapas */
+.et th{font-size:11px;letter-spacing:.9px}
+.et select.respsel{font-size:13px}
+.stbtn{position:relative;box-shadow:0 1px 2px rgba(62,36,25,.12)}
+.stbtn::after{content:"";position:absolute;inset:-7px;border-radius:50%}   /* alvo de toque ≥ 44px */
+.stbtn.g{background:linear-gradient(180deg,#52B356,#3E9842)}
+.stbtn.a{background:linear-gradient(180deg,#F2B54A,#DE9A2B)}
+.stbtn.r{background:linear-gradient(180deg,#D9483B,#B8352A)}
+.rowdel{color:#A8907E;position:relative}
+.rowdel::after{content:"";position:absolute;inset:-6px}
+.leg{font-size:11.5px}
+.eprog{display:inline-flex;align-items:center;gap:8px;margin-left:6px;padding:3px 10px 3px 8px;border-radius:20px;
+  background:#EDF6EA;color:#1F6A25;font-size:12px;font-weight:700;white-space:nowrap}
+.eprog .bar{width:54px;height:5px;border-radius:5px;background:#CFE6C9;overflow:hidden}
+.eprog .bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#43A047,#7CC36B);
+  transition:width 320ms var(--ease-out)}
+.eprog.zero{background:var(--cream);color:var(--mute)}
+
+/* fotos */
+.thumb{border-radius:12px;box-shadow:0 1px 3px rgba(62,36,25,.08)}
+.thumb .x::after{content:"";position:absolute;inset:-9px;border-radius:50%}
+.addtile{border-radius:12px}
+.addtile .plus{background:var(--gold-grad);box-shadow:0 4px 10px -4px rgba(222,154,43,.7)}
+
+/* validação de data */
+input.erro{border-color:#D9483B!important;box-shadow:0 0 0 3px rgba(217,72,59,.15)!important}
+.ferr{font-size:12px;color:#B23A2A;font-weight:600;margin-top:6px;display:none}
+.ferr.on{display:block}
+
+/* aviso com ação (Desfazer) */
+.toast{display:flex;align-items:center;gap:14px;padding:11px 14px 11px 20px;border-radius:10px}
+.toast.acao{pointer-events:auto}
+.toast .undo{border:0;background:rgba(244,190,82,.16);color:#F6CB6B;font:inherit;font-size:12.5px;font-weight:700;
+  padding:6px 12px;border-radius:7px;cursor:pointer;transition:background-color 120ms ease,transform 160ms var(--ease-out)}
+.toast .undo:active{transform:scale(.96)}
+@media (hover:hover) and (pointer:fine){.toast .undo:hover{background:rgba(244,190,82,.28)}}
+
+/* foco visível só para teclado */
+.btn:focus-visible,.pitem:focus-visible,.pgrp:focus-visible,.stbtn:focus-visible,.rowdel:focus-visible,
+.addtile:focus-visible,.thumb .x:focus-visible,.toast .undo:focus-visible{outline:0;box-shadow:var(--ring)}
+.pitem:focus-visible,.pgrp:focus-visible{border-radius:10px}
+
+@media (prefers-reduced-motion:reduce){.pbar i,.eprog .bar i{transition:none}}
 </style>
 </head>
 <body>
@@ -190,7 +303,7 @@ table.et{width:100%;border-collapse:collapse}
   <button class="btn ghost" onclick="saveJSON()">Exportar dados</button>
   <button class="btn ghost" onclick="document.getElementById('imp').click()">Importar dados</button>
   <input id="imp" type="file" accept="application/json" style="display:none" onchange="loadJSON(event)">
-  <button class="btn primary" onclick="baixarPPTX()">⬇&nbsp; Gerar PowerPoint</button>
+  <button class="btn primary" onclick="baixarPPTX()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>Gerar PowerPoint</button>
 </div></div>
 
 <div class="wrap">
@@ -239,17 +352,18 @@ table.et{width:100%;border-collapse:collapse}
           <div class="c4"><label class="fl">Responsável</label>
             <input type="text" id="f_resp" oninput="P().resp=this.value;save()"></div>
           <div class="c4"><label class="fl">Data de abertura</label>
-            <input type="text" id="f_ab" inputmode="numeric" placeholder="dd/mm/aaaa" oninput="mascaraData(this);P().abertura=this.value;save()"></div>
+            <input type="text" id="f_ab" inputmode="numeric" placeholder="dd/mm/aaaa" oninput="mascaraData(this);P().abertura=this.value;save();validaData(this,false)" onblur="validaData(this,true)">
+            <div class="ferr" id="f_ab_err">Data inválida — use dd/mm/aaaa</div></div>
           <div class="c4"><label class="fl">Atualizado em</label>
-            <div class="rofield" id="f_at" title="Preenchido automaticamente com a data de hoje"><span id="f_at_val">—</span><span class="auto">🔄 automático</span></div></div>
-          <div class="c12"><label class="fl">🔎 Link da pesquisa de mercado</label>
+            <div class="rofield" id="f_at" title="Preenchido automaticamente com a data de hoje"><span id="f_at_val">—</span><span class="auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4.5v5h-5"/></svg>automático</span></div></div>
+          <div class="c12"><label class="fl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Link da pesquisa de mercado</label>
             <input type="text" id="f_link" placeholder="https://… (cole o link da pesquisa deste projeto)" oninput="P().linkPesquisa=this.value;save()"></div>
         </div>
       </div>
     </div>
 
     <div class="panel">
-      <div class="phead"><span class="n">02</span><b>Cronograma de etapas</b><span class="hint">clique na bolinha para alternar o status</span></div>
+      <div class="phead"><span class="n">02</span><b>Cronograma de etapas</b><span class="eprog" id="etprog"></span><span class="hint">clique na bolinha para alternar o status · Alt+↑/↓ reordena</span></div>
       <div class="pbody">
         <table class="et">
           <thead><tr><th></th><th>Etapa</th><th class="c">Status</th><th>Responsável</th><th style="width:120px">Previsto</th><th></th></tr></thead>
@@ -327,6 +441,7 @@ table.et{width:100%;border-collapse:collapse}
 const KEY = "divine_editor_v1";
 const ORDER = ["n", "a", "g", "r"];
 const SYM = { n: "", a: "◐", g: "✓", r: "!" };
+const ST_NOME = { n: "não iniciado", a: "em andamento", g: "concluído", r: "bloqueado" };
 const MAX_IMGS = 6;
 // opções fixas de responsável (select)
 const RESP_OPCOES = ["P&D", "Compras", "Marketing", "Trade", "Produção e Manutenção", "Produção",
@@ -441,14 +556,15 @@ function mudaStatusGeral(v) {
 }
 function itemProjeto(p, i, arq, k) {
   const ent = k != null ? ` entra" style="--i:${Math.min(k, 8)}` : "";
-  return `<div class="pitem ${i === state.sel ? "sel" : ""} ${arq ? "arq" : ""}${ent}" draggable="true" onclick="selProject(${i})"
+  return `<div class="pitem ${i === state.sel ? "sel" : ""} ${arq ? "arq" : ""}${ent}" draggable="true" onclick="selProject(${i})" tabindex="0" role="button"
+       onkeydown="teclaAtiva(event,()=>selProject(${i}))"
        ondragstart="dragStart(event,'proj',${i})"
        ondragover="dragOverRow(event,'proj',${i});this.classList.add('dragover')"
        ondragleave="this.classList.remove('dragover')"
        ondrop="this.classList.remove('dragover');dropRow(event,'proj',${i})" ondragend="clearDrag()">
        <span class="grip" title="Arraste para reordenar">⠿</span>
        <span class="st" style="background:${SGDOT[p.statusGeral] || "var(--n)"}"></span>
-       <span class="pname">${esc(p.nome) || "(sem nome)"}</span></div>`;
+       <span class="pname">${esc(p.nome) || "(sem nome)"}</span>${barraProgresso(p)}</div>`;
 }
 function renderList() {
   const g = DivineExport.agrupa(state.projects), total = state.projects.length;
@@ -457,12 +573,50 @@ function renderList() {
     const itens = g[gr.id];
     if (!itens.length && gr.id !== "ativos") return "";   // grupo vazio não aparece
     const aberto = grupoAberto(gr.id), arq = gr.id !== "ativos";
-    const cab = `<div class="pgrp ${aberto ? "open" : ""}" onclick="toggleGrupo('${gr.id}')" title="${aberto ? "Recolher" : "Mostrar"}">
+    const cab = `<div class="pgrp ${aberto ? "open" : ""}" onclick="toggleGrupo('${gr.id}')" title="${aberto ? "Recolher" : "Mostrar"}"
+       tabindex="0" role="button" aria-expanded="${aberto}" onkeydown="teclaAtiva(event,()=>toggleGrupo('${gr.id}'))">
        <span class="car">▶</span>${gr.nome}<span class="n">${itens.length}</span></div>`;
     if (!aberto) return cab;
     return cab + (itens.length ? itens.map(({ p, i }, k) => itemProjeto(p, i, arq, _grupoAbrindo === gr.id ? k : null)).join("")
                                : `<div class="pvazio">Nenhum projeto em andamento</div>`);
   }).join("");
+}
+// Enter/Espaço ativam elementos clicáveis que não são <button>
+function teclaAtiva(ev, fn) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); fn(); } }
+// progresso = etapas concluídas / total
+function progresso(p) {
+  const et = p.etapas || [], ok = et.filter(e => e.st === "g").length;
+  return { ok, total: et.length, pct: et.length ? Math.round(ok / et.length * 100) : 0 };
+}
+function barraProgresso(p) {
+  const g = progresso(p);
+  return `<span class="pbar" title="${g.ok} de ${g.total} etapas concluídas"><i style="width:${g.pct}%"></i></span>`;
+}
+function renderProgresso() {
+  const g = progresso(P()), el = document.getElementById("etprog");
+  el.className = "eprog" + (g.ok ? "" : " zero");
+  el.innerHTML = `<span class="bar"><i style="width:${g.pct}%"></i></span>${g.ok} de ${g.total} concluídas`;
+}
+// data dd/mm/aaaa válida de verdade (ex.: 31/02 não passa)
+function dataValida(v) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(v); if (!m) return false;
+  const d = +m[1], mo = +m[2], a = +m[3], dt = new Date(a, mo - 1, d);
+  return dt.getFullYear() === a && dt.getMonth() === mo - 1 && dt.getDate() === d;
+}
+// mostra o erro ao sair do campo; ao digitar, só limpa quando ficar válido
+function validaData(el, mostrar) {
+  const ok = !el.value || dataValida(el.value), err = document.getElementById(el.id + "_err");
+  if (ok) { el.classList.remove("erro"); err.classList.remove("on"); }
+  else if (mostrar) { el.classList.add("erro"); err.classList.add("on"); }
+}
+// Alt+↑/↓ no nome da etapa reordena pelo teclado (alternativa ao arrastar)
+function moveEtapaTecla(ev, i) {
+  if (!ev.altKey || (ev.key !== "ArrowUp" && ev.key !== "ArrowDown")) return;
+  ev.preventDefault();
+  const j = i + (ev.key === "ArrowUp" ? -1 : 1);
+  if (j < 0 || j >= P().etapas.length) return;
+  reorder("et", i, j);
+  const inp = document.querySelectorAll("#etapas tr")[j]; if (inp) inp.querySelector("input").focus();
 }
 function selProject(i) { state.sel = i; save(); renderAll(); }
 
@@ -492,7 +646,11 @@ function dupProject() {
 function delProject() {
   if (state.projects.length === 1) { toast("Deixe ao menos um projeto."); return; }
   if (!confirm(`Excluir o projeto “${P().nome}”?`)) return;
-  state.projects.splice(state.sel, 1); state.sel = Math.max(0, state.sel - 1); save(); renderAll();
+  const idx = state.sel, [p] = state.projects.splice(idx, 1);
+  state.sel = Math.max(0, idx - 1); save(); renderAll();
+  toast(`Projeto “${p.nome}” excluído.`, { rotulo: "Desfazer", fn: () => {
+    state.projects.splice(idx, 0, p); state.sel = idx; abreGrupoSel(); save(); renderAll(); toast("Projeto restaurado.");
+  } });
 }
 
 /* ================= formulário ================= */
@@ -510,6 +668,7 @@ function renderForm() {
   paintSG();
   document.getElementById("f_resp").value = p.resp || "";
   document.getElementById("f_ab").value = p.abertura || "";
+  document.getElementById("f_ab").classList.remove("erro"); document.getElementById("f_ab_err").classList.remove("on");
   // "atualizado em" = hoje nos projetos em andamento; pausados/finalizados/cancelados
   // preservam a data de quando saíram da pauta
   if (DivineExport.grupoDe(p) === "ativos") p.atualizado = hoje();
@@ -531,23 +690,29 @@ function renderEtapas() {
     <tr ondragover="dragOverRow(event,'et',${i});this.classList.add('dragover')"
         ondragleave="this.classList.remove('dragover')"
         ondrop="this.classList.remove('dragover');dropRow(event,'et',${i})">
-      <td class="num" draggable="true" title="Arraste para reordenar"
+      <td class="num" draggable="true" title="Arraste (ou Alt+↑/↓ no nome) para reordenar"
           ondragstart="dragStart(event,'et',${i})" ondragend="clearDrag()">
         <span class="grip">⠿</span><b>${String(i + 1).padStart(2, "0")}</b></td>
-      <td><input type="text" value="${esc(e.n)}" placeholder="Nome da etapa" oninput="P().etapas[${i}].n=this.value;save()"></td>
-      <td class="cst"><button class="stbtn ${e.st}" title="Clique para mudar o status" onclick="cycleSt(${i})">${SYM[e.st]}</button></td>
+      <td><input type="text" value="${esc(e.n)}" placeholder="Nome da etapa" aria-label="Nome da etapa ${i + 1}" oninput="P().etapas[${i}].n=this.value;save()" onkeydown="moveEtapaTecla(event,${i})"></td>
+      <td class="cst"><button class="stbtn ${e.st}" title="Clique para mudar o status" aria-label="Status: ${ST_NOME[e.st]} — clique para mudar" onclick="cycleSt(${i})">${SYM[e.st]}</button></td>
       <td>${respSelect(i, e.resp)}</td>
       <td><input type="text" value="${esc(e.prev)}" placeholder="—" oninput="P().etapas[${i}].prev=this.value;save()"></td>
-      <td class="cdel"><button class="rowdel" title="Remover etapa" onclick="delEtapa(${i})">×</button></td>
+      <td class="cdel"><button class="rowdel" title="Remover etapa" aria-label="Remover etapa ${i + 1}" onclick="delEtapa(${i})">×</button></td>
     </tr>`).join("");
+  renderProgresso();
 }
 function cycleSt(i) {
   const e = P().etapas[i];
   e.st = ORDER[(ORDER.indexOf(e.st) + 1) % ORDER.length];
-  save(); renderEtapas();
+  save(); renderEtapas(); renderList();
 }
 function addEtapa() { P().etapas.push({ n: "", st: "n", resp: "", prev: "" }); save(); renderEtapas(); }
-function delEtapa(i) { P().etapas.splice(i, 1); save(); renderEtapas(); }
+function delEtapa(i) {
+  const p = P(), [e] = p.etapas.splice(i, 1); save(); renderEtapas(); renderList();
+  toast(`Etapa “${e.n || "sem nome"}” removida.`, { rotulo: "Desfazer", fn: () => {
+    p.etapas.splice(i, 0, e); save(); if (P() === p) renderEtapas(); renderList(); toast("Etapa restaurada.");
+  } });
+}
 
 /* ================= moeda (pt-BR) ================= */
 function fmtMoeda(v) {
@@ -572,9 +737,10 @@ function renderImgs() {
   const p = P();
   const tiles = p.imgs.map((im, i) => `
     <div class="thumb"><img src="${im}" alt="foto ${i + 1}">
-      <button class="x" title="Remover foto" onclick="rmImg(${i})">×</button></div>`);
+      <button class="x" title="Remover foto" aria-label="Remover foto ${i + 1}" onclick="rmImg(${i})">×</button></div>`);
   if (p.imgs.length < MAX_IMGS) {
-    tiles.push(`<div class="addtile" id="addtile" onclick="document.getElementById('fimg').click()">
+    tiles.push(`<div class="addtile" id="addtile" tabindex="0" role="button" onclick="document.getElementById('fimg').click()"
+      onkeydown="teclaAtiva(event,()=>document.getElementById('fimg').click())">
       <div class="plus">+</div><span>adicionar foto${p.imgs.length ? "" : "s"}<br>(arraste ou clique)</span></div>`);
   }
   document.getElementById("thumbs").innerHTML = tiles.join("");
@@ -608,7 +774,12 @@ function addFiles(files) {
   });
 }
 function pickImg(ev) { addFiles(ev.target.files); ev.target.value = ""; }
-function rmImg(i) { P().imgs.splice(i, 1); save(); renderImgs(); }
+function rmImg(i) {
+  const p = P(), [im] = p.imgs.splice(i, 1); save(); renderImgs();
+  toast("Foto removida.", { rotulo: "Desfazer", fn: () => {
+    p.imgs.splice(i, 0, im); save(); if (P() === p) renderImgs(); toast("Foto restaurada.");
+  } });
+}
 document.addEventListener("dragover", e => e.preventDefault());
 document.addEventListener("drop", e => e.preventDefault());
 
@@ -670,10 +841,19 @@ function baixarPPTX() {
       });
   }).catch(e => { alert("Erro ao gerar o PowerPoint: " + e.message); });
 }
-function toast(msg) {
+// toast(msg) ou toast(msg, { rotulo, fn }) — com ação, fica 6s e aceita clique
+function toast(msg, acao) {
   const t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 3400);
+  t.textContent = msg;
+  t.classList.toggle("acao", !!acao);
+  if (acao) {
+    const b = document.createElement("button");
+    b.className = "undo"; b.textContent = acao.rotulo;
+    b.onclick = () => { clearTimeout(t._h); t.classList.remove("show", "acao"); acao.fn(); };
+    t.appendChild(b);
+  }
+  t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show", "acao"), acao ? 6000 : 3400);
 }
 
 /* ================= boot ================= */
