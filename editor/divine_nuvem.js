@@ -69,7 +69,7 @@
     if (!el) return;
     el.className = "nstatus " + tipo;
     el.querySelector("span").textContent = texto;
-    el.title = tipo === "off" ? "Sem conexão com a nuvem. Tudo continua salvo neste computador e será enviado automaticamente." : texto;
+    el.title = tipo === "off" ? texto + ": sem conexão com a nuvem. Tudo continua salvo neste computador e será enviado automaticamente." : texto;
   }
   function pintaTopo() {
     const area = document.getElementById("nuvemArea");
@@ -167,7 +167,7 @@
     try {
       if (!meta.pronto) await primeiraCarga(vinhaDoLocal);
       await sincronizar();
-    } catch (e) { status("off", "Offline — salvo neste computador"); }
+    } catch (e) { status("off", "Offline"); }
     iniciaCiclo();
   }
 
@@ -228,7 +228,7 @@
       await receber();
       status("ok", "Salvo na nuvem");
     } catch (e) {
-      status("off", erroDeRede(e) ? "Offline — salvo neste computador" : "Erro ao sincronizar — salvo neste computador");
+      status("off", erroDeRede(e) ? "Offline" : "Erro ao sincronizar");
       if (!erroDeRede(e)) console.warn("[Nuvem]", e);
       clearTimeout(timer); timer = setTimeout(sincronizar, 15000);   // tenta de novo sozinho
     } finally {
