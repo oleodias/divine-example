@@ -6,6 +6,8 @@
     "build": "node build_editor.js && cp Editor_Divine.html ../index.html"
   },
   "dependencies": {
+    "@fontsource/fraunces": "5.0.18",
+    "@fontsource/inter": "5.0.18",
     "jszip": "3.10.1",
     "pptxgenjs": "4.0.1"
   }

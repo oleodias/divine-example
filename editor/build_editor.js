@@ -24,6 +24,20 @@ if (fs.existsSync("divine_intro_assets.js")) {
 // (o divine-intro.js traz "</script>" dentro de um comentário). Em JS, "<\/script"
 // é idêntico a "</script", então o comportamento não muda.
 const tag = (js) => "<script>" + String(js).replace(/<\/script/gi, "<\\/script") + "</" + "script>";
+// ---- fontes da interface (Inter + Fraunces, licença OFL) embutidas em base64,
+// para o arquivo continuar único e funcionando offline. Sem os pacotes, usa a do sistema.
+let fontes = "";
+const FONTES = [["Inter", "inter", [400, 500, 600, 700, 800]], ["Fraunces", "fraunces", [600, 700]]];
+for (const [fam, pkg, pesos] of FONTES) {
+  for (const w of pesos) {
+    const arq = `node_modules/@fontsource/${pkg}/files/${pkg}-latin-${w}-normal.woff2`;
+    if (!fs.existsSync(arq)) continue;
+    fontes += `@font-face{font-family:"${fam}";font-style:normal;font-weight:${w};font-display:swap;` +
+      `src:url(data:font/woff2;base64,${fs.readFileSync(arq).toString("base64")}) format("woff2")}\n`;
+  }
+}
+if (fontes) console.log("fontes embutidas (Inter + Fraunces)");
+html = html.replace("<!--FONTS-->", () => fontes ? "<style>\n" + fontes + "</style>" : "");
 html = html.replace("<!--PPTXGEN-->", () => tag(bundle) + "\n" + tag(jszip));
 html = html.replace("<!--EXPORT-->", () => tag(exp));
 
