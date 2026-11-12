@@ -30,7 +30,7 @@ CREAM2 = RGBColor(0xF4, 0xEA, 0xD7)
 CREAM3 = RGBColor(0xF9, 0xF3, 0xE4)
 LINE   = RGBColor(0xE3, 0xD6, 0xBF)
 INK    = RGBColor(0x2A, 0x1B, 0x12)
-MUTE   = RGBColor(0x9C, 0x8C, 0x72)
+MUTE   = RGBColor(0x77, 0x66, 0x50)   # cinza-cacau (contraste >= 4,5:1)
 WHITE  = RGBColor(0xFF, 0xFF, 0xFF)
 CREAMTXT = RGBColor(0xE7, 0xD8, 0xC2)
 
@@ -41,6 +41,15 @@ N  = RGBColor(0xCD, 0xBD, 0xA4); ND = RGBColor(0x8A, 0x7A, 0x66)
 
 FONT   = "Segoe UI"
 SCRIPT = "Segoe Script"
+SERIF  = "Georgia"      # títulos: serifa presente em todo Windows, Mac e Office
+
+# status geral — paleta viva (igual ao editor)
+SG = {"EM ANDAMENTO": (RGBColor(0xF4, 0xBE, 0x52), RGBColor(0x3A, 0x23, 0x06)),
+      "CONCLUÍDO":    (RGBColor(0x52, 0xB3, 0x56), RGBColor(0xFF, 0xFF, 0xFF)),
+      "PAUSADO":      (RGBColor(0xE4, 0xD8, 0xC2), RGBColor(0x4E, 0x3F, 0x2C)),
+      "EM TESTE":     (RGBColor(0xFF, 0xF0, 0xCC), RGBColor(0x7A, 0x52, 0x0A)),
+      "PLANEJAMENTO": (RGBColor(0xF3, 0xE7, 0xD2), RGBColor(0x4E, 0x31, 0x22)),
+      "CANCELADO":    (RGBColor(0xD9, 0x48, 0x3B), RGBColor(0xFF, 0xFF, 0xFF))}
 
 LOGO_WM = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo_wordmark.png")
 HAS_LOGO = os.path.exists(LOGO_WM)
@@ -48,6 +57,8 @@ HEADER_BG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "header_bg.
 HAS_HEADER = os.path.exists(HEADER_BG)
 
 import anim_lib
+from pptx.oxml.ns import qn
+from lxml import etree
 def _ids(s): return {sp.shape_id for sp in s.shapes}
 def _grp(s, before): return sorted(_ids(s) - before)   # ids criados desde o snapshot
 
@@ -85,8 +96,19 @@ def shape(s, kind, x, y, w, h, fill=None, line=None, line_w=0.75, shadow_off=Tru
 def rect(s, x, y, w, h, fill, **kw):
     return shape(s, MSO_SHAPE.RECTANGLE, x, y, w, h, fill=fill, **kw)
 
+def sombra_suave(sp):
+    """sombra externa leve (8pt de desfoque, 2pt para baixo, 10% de opacidade)"""
+    spPr = sp._element.spPr
+    for e in spPr.findall(qn("a:effectLst")): spPr.remove(e)
+    eff = etree.SubElement(spPr, qn("a:effectLst"))
+    sh = etree.SubElement(eff, qn("a:outerShdw"), blurRad="101600", dist="25400", dir="5400000", algn="t", rotWithShape="0")
+    clr = etree.SubElement(sh, qn("a:srgbClr"), val="3E2419")
+    etree.SubElement(clr, qn("a:alpha"), val="10000")
+    return sp
+
 def card(s, x, y, w, h, fill=WHITE):
-    return shape(s, MSO_SHAPE.ROUNDED_RECTANGLE, x, y, w, h, fill=fill, line=LINE, line_w=1.0, radius=0.055)
+    sp = shape(s, MSO_SHAPE.ROUNDED_RECTANGLE, x, y, w, h, fill=fill, line=RGBColor(0xEA, 0xDF, 0xC8), line_w=0.75, radius=0.065)
+    return sombra_suave(sp)
 
 def text(s, x, y, w, h, runs, align=PP_ALIGN.LEFT, anchor=MSO_ANCHOR.TOP,
          space_after=0, line_spacing=None, wrap=True, autosize_off=True):
@@ -167,7 +189,7 @@ def header(s, eyebrow, title, prioridade=None, status_geral=None, status_fill=GO
     rect(s, 0, 0.98, 13.333, 0.028, GOLD)          # filete dourado
     tx0 = logo_block(s)
     text(s, tx0, 0.155, 8.0, 0.25, [[(eyebrow, 10, True, GOLDLT)]])
-    text(s, tx0 - 0.02, 0.375, 8.0, 0.55, [[(title, 25, True, WHITE)]])
+    text(s, tx0 - 0.02, 0.36, 8.0, 0.58, [[(title, 26, True, WHITE, False, SERIF)]])
     if prioridade is not None:
         text(s, 9.35, 0.14, 1.55, 0.2, [[("PRIORIDADE", 8, True, CREAMTXT)]], align=PP_ALIGN.CENTER)
         pill(s, 9.35, 0.40, 1.55, 0.40, WHITE, prioridade, CHOC, size=11.5)
@@ -219,7 +241,7 @@ def card_header(s, x, y, icon_fill, icon_sym, icon_tc, label, label_color=CHOC):
     p = tf.paragraphs[0]; p.alignment = PP_ALIGN.CENTER
     r = p.add_run(); r.text = icon_sym
     r.font.size = Pt(12); r.font.bold = True; r.font.color.rgb = icon_tc; r.font.name = FONT
-    text(s, x + 0.37, y + 0.015, 4.5, 0.26, [[(label, 11.5, True, label_color)]])
+    text(s, x + 0.37, y - 0.01, 4.5, 0.3, [[(label, 14, True, label_color, False, SERIF)]])
 
 def bullets(s, x, y, w, h, items, color=CHOC2, size=10.5):
     paras = [[("•  ", size, True, GOLD), (t, size, False, color)] for t in items]
@@ -243,8 +265,8 @@ _b = _ids(s)
 text(s, 0.95, 1.55, 10.0, 0.35, [[("P & D   ·   P E S Q U I S A   &   D E S E N V O L V I M E N T O", 12, True, GOLDLT)]])
 _cg.append(_grp(s, _b)); _b = _ids(s)
 text(s, 0.92, 2.0, 11.0, 1.9, [
-    [("Acompanhamento", 45, True, WHITE)],
-    [("de Projetos", 45, True, WHITE)]], line_spacing=1.0)
+    [("Acompanhamento", 48, True, WHITE, False, SERIF)],
+    [("de Projetos", 48, True, WHITE, False, SERIF)]], line_spacing=1.0)
 _cg.append(_grp(s, _b)); _b = _ids(s)
 text(s, 0.95, 4.05, 8.6, 0.75, [[
     ("Status do portfólio de novos produtos — andamento, pendências e próximos passos, projeto a projeto.",
@@ -281,7 +303,16 @@ def slide_acompanhamento(nome, prioridade, status_geral, status_fill, status_tc,
 
     # ---- card esquerdo: status detalhado ----
     card(s, 0.35, 1.62, 6.55, 5.42)
-    text(s, 0.62, 1.82, 4.0, 0.26, [[("STATUS DETALHADO", 11.5, True, CHOC)]])
+    text(s, 0.62, 1.80, 4.0, 0.3, [[("Status detalhado", 14, True, CHOC, False, SERIF)]])
+    # selo de progresso: etapas concluídas / total
+    ok = sum(1 for e in etapas if e[1] == 'g'); pct = ok / len(etapas) if etapas else 0
+    bx, by = 4.30, 1.80
+    shape(s, MSO_SHAPE.ROUNDED_RECTANGLE, bx, by, 2.40, 0.30, fill=RGBColor(0xED, 0xF6, 0xEA), radius=0.5)
+    shape(s, MSO_SHAPE.ROUNDED_RECTANGLE, bx + 0.14, by + 0.12, 0.80, 0.07, fill=RGBColor(0xCF, 0xE6, 0xC9), radius=0.5)
+    if pct > 0:
+        shape(s, MSO_SHAPE.ROUNDED_RECTANGLE, bx + 0.14, by + 0.12, max(0.07, 0.80 * pct), 0.07, fill=G, radius=0.5)
+    text(s, bx + 1.02, by, 1.34, 0.30, [[(f"{ok} de {len(etapas)} concluídas", 9.5, True, RGBColor(0x1F, 0x6A, 0x25))]],
+         anchor=MSO_ANCHOR.MIDDLE)
 
     tx, ty, tw = 0.62, 2.18, 6.02
     col_w = [2.85, 0.72, 1.45, 1.00]
@@ -321,17 +352,17 @@ def slide_acompanhamento(nome, prioridade, status_geral, status_fill, status_tc,
     _ag = []
     _b = _ids(s)
     card(s, 7.10, 1.62, 5.85, 1.66)
-    card_header(s, 7.36, 1.83, A, "!", WHITE, "PENDÊNCIAS", AD)
+    card_header(s, 7.36, 1.83, A, "!", WHITE, "Pendências", AD)
     bullets(s, 7.46, 2.24, 5.28, 0.95, pendencias)
     _ag.append(_grp(s, _b)); _b = _ids(s)
 
     card(s, 7.10, 3.42, 5.85, 1.66)
-    card_header(s, 7.36, 3.63, G, "→", WHITE, "PRÓXIMAS AÇÕES", GD)
+    card_header(s, 7.36, 3.63, G, "→", WHITE, "Próximas ações", GD)
     bullets(s, 7.46, 4.04, 5.28, 0.95, acoes)
     _ag.append(_grp(s, _b)); _b = _ids(s)
 
     card(s, 7.10, 5.22, 5.85, 1.82)
-    card_header(s, 7.36, 5.43, GOLDLT, "✎", WHITE, "OBSERVAÇÕES E COMENTÁRIOS", CHOC)
+    card_header(s, 7.36, 5.43, GOLDLT, "✎", WHITE, "Observações e comentários", CHOC)
     text(s, 7.46, 5.85, 5.28, 1.05, [[(observ, 10.5, False, CHOC2, True)]], line_spacing=1.2)
     _ag.append(_grp(s, _b))
     anim_lib.set_entrance(s, _ag)
@@ -368,7 +399,7 @@ def slide_imagens_orcamento(nome, orc):
     _og.append(_grp(s, _b)); _b = _ids(s)
     # ---- card orçamento — grupo 2 ----
     card(s, 8.10, 1.30, 4.90, 5.60)
-    card_header(s, 8.36, 1.52, GOLD, "$", WHITE, "ORÇAMENTO", CHOC)
+    card_header(s, 8.36, 1.52, GOLD, "$", WHITE, "Orçamento", CHOC)
 
     fx, fw = 8.40, 4.30
     fy = 1.98
@@ -414,7 +445,7 @@ _pv_forfit = ["08/06", "24/07", "24/07", "03/08", "17/07", "—", "24/07",
 etapas_forfit = [(ETAPAS_PADRAO[i], _st_forfit[i], _rp_forfit[i], _pv_forfit[i])
                  for i in range(len(ETAPAS_PADRAO))]
 slide_acompanhamento(
-    "Barrinhas FOR FIT", "ALTA", "EM TESTE", AB, AD,
+    "Barrinhas FOR FIT", "ALTA", "EM TESTE", *SG["EM TESTE"],
     "Paloma e Isabele", "15/06/2026", date.today().strftime("%d/%m/%Y"),
     etapas_forfit,
     ["Aguardar fechamento de formulação;", "Moinho de rolos;"],
@@ -432,7 +463,7 @@ slide_imagens_orcamento("Barrinhas FOR FIT", {
 # ============================================================
 etapas_blank = [(e, 'n', "—", "—") for e in ETAPAS_PADRAO]
 slide_acompanhamento(
-    "[ Nome do Projeto ]", "—", "PLANEJAMENTO", CREAM2, CHOC,
+    "[ Nome do Projeto ]", "—", "PLANEJAMENTO", *SG["PLANEJAMENTO"],
     "—", "—", "—",
     etapas_blank,
     ["—", "—"],
@@ -451,7 +482,7 @@ s = new_slide()
 header(s, "GUIA RÁPIDO", "Como usar este modelo")
 
 card(s, 0.35, 1.30, 7.55, 5.60)
-text(s, 0.62, 1.52, 5.0, 0.26, [[("PASSO A PASSO", 11.5, True, CHOC)]])
+text(s, 0.62, 1.52, 5.0, 0.26, [[("Passo a passo", 14, True, CHOC, False, SERIF)]])
 passos = [
     ("1.", "Novo projeto:", " selecione os dois slides-modelo “[ Nome do Projeto ]”, duplique (Ctrl+D) e mova o par para o final."),
     ("2.", "Cabeçalho:", " troque o nome do projeto, a prioridade e o status geral (a caixinha dourada é só texto + cor de preenchimento)."),
@@ -464,7 +495,7 @@ paras = [[(n + "  ", 11, True, GOLD), (b, 11, True, CHOC), (t, 11, False, CHOC2)
 text(s, 0.62, 1.95, 7.0, 4.8, paras, space_after=10, line_spacing=1.18)
 
 card(s, 8.10, 1.30, 4.90, 5.60)
-text(s, 8.36, 1.52, 4.2, 0.26, [[("LEGENDA DE STATUS", 11.5, True, CHOC)]])
+text(s, 8.36, 1.52, 4.2, 0.26, [[("Legenda de status", 14, True, CHOC, False, SERIF)]])
 leg = [('g', "Concluído", "Etapa finalizada e validada."),
        ('a', "Em andamento", "Etapa em execução."),
        ('r', "Bloqueado", "Travado — depende de decisão ou terceiro."),
@@ -476,9 +507,8 @@ for st, lab, desc in leg:
     text(s, 8.85, ly + 0.26, 4.0, 0.24, [[(desc, 9.5, False, MUTE)]])
     ly += 0.72
 
-text(s, 8.36, 5.05, 4.2, 0.26, [[("STATUS GERAL (cabeçalho)", 11.5, True, CHOC)]])
-gerais = [("EM ANDAMENTO", GOLDLT, INK), ("CONCLUÍDO", G, WHITE), ("PAUSADO", N, INK),
-          ("EM TESTE", AB, AD), ("PLANEJAMENTO", CREAM2, CHOC)]
+text(s, 8.36, 5.05, 4.2, 0.26, [[("Status geral (cabeçalho)", 14, True, CHOC, False, SERIF)]])
+gerais = [(k, *SG[k]) for k in ("EM ANDAMENTO", "CONCLUÍDO", "PAUSADO", "EM TESTE", "PLANEJAMENTO", "CANCELADO")]
 gx, gy = 8.36, 5.42
 for lab, f, tc in gerais:
     w = 0.42 + len(lab) * 0.085
@@ -499,7 +529,7 @@ else:
     shape(s, MSO_SHAPE.OVAL, 11.5, 5.3, 3.4, 3.4, fill=RGBColor(0x47, 0x2B, 0x1C))
 rect(s, 0, 7.34, 13.333, 0.16, GOLD)
 _tg = []; _b = _ids(s)
-text(s, 0.92, 2.55, 11.5, 1.3, [[("Muito obrigada!", 54, True, WHITE)]])
+text(s, 0.92, 2.55, 11.5, 1.3, [[("Muito obrigada!", 58, True, WHITE, False, SERIF)]])
 _tg.append(_grp(s, _b)); _b = _ids(s)
 text(s, 0.95, 3.95, 10.0, 0.4, [[("Divine Chocolates · Pesquisa & Desenvolvimento", 15, False, CREAMTXT)]])
 _tg.append(_grp(s, _b)); _b = _ids(s)
