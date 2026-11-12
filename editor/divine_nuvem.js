@@ -25,6 +25,8 @@
   let sb = null, usuario = null, nomeMembro = "";
   let meta = { snap: {}, ciclo: null, ultimo: null, pronto: false };
   let timer = null, rodando = false, denovo = false, formAtrasado = false;
+  let agendado = false;   // há um envio esperando os 0,7s
+  let saindo = false;     // aba escondida/fechando: envios pequenos usam keepalive
 
   /* ---------------- utilidades ---------------- */
   const ls = {
@@ -215,14 +217,33 @@
   /* ---------------- sincronização ---------------- */
   function agendar(ms) {
     if (!ativo() || !meta.pronto) return;
-    clearTimeout(timer);
+    clearTimeout(timer); agendado = true;
     timer = setTimeout(sincronizar, ms == null ? 700 : ms);
     status("sync", "Salvando…");
+  }
+  /* envia já, sem esperar os 0,7s (ao trocar de aba, minimizar ou fechar) */
+  function enviarAgora() {
+    if (!ativo() || !meta.pronto || !(agendado || rodando || temPendencia())) return;
+    clearTimeout(timer); sincronizar();
+  }
+  /* há algo no computador que a nuvem ainda não recebeu? */
+  function temPendencia() {
+    if (!ativo() || !meta.pronto) return false;
+    if (agendado || rodando) return true;
+    if ((state.ciclo || "") !== (meta.ciclo || "")) return true;
+    const ids = new Set();
+    for (const p of state.projects) {
+      if (!p._id) return true;
+      ids.add(p._id);
+      const s = meta.snap[p._id];
+      if (!s || s.h !== hash(p)) return true;
+    }
+    return Object.keys(meta.snap).some(id => !ids.has(id));
   }
   async function sincronizar() {
     if (!ativo() || !meta.pronto) return;
     if (rodando) { denovo = true; return; }
-    rodando = true;
+    rodando = true; agendado = false;
     try {
       await enviar();
       await receber();
@@ -295,6 +316,14 @@
     const { data, error } = await sb.from("projetos")
       .select("id,dados,ordem,versao,excluido_em,atualizado_em,atualizado_por_nome").eq("id", p._id).maybeSingle();
     if (error) throw error;
+    // a nuvem já tem exatamente este conteúdo (ex.: o envio chegou, mas a página fechou antes
+    // da confirmação): não é conflito, só atualiza a versão — sem criar cópia repetida
+    if (data && !data.excluido_em && hash(linhaParaProjeto(data)) === hash(p)) {
+      Object.assign(p, { _versao: data.versao, _por: data.atualizado_por_nome, _em: data.atualizado_em });
+      meta.snap[data.id] = { h: hash(p), o: data.ordem, v: data.versao };
+      salvaMeta(); salvaLocal();
+      return;
+    }
     const minha = limpa(p);
     minha.nome = (minha.nome || "Projeto") + " (sua versão)";
     const idx = state.projects.indexOf(p);
@@ -501,10 +530,28 @@
     if (!window.supabase || !window.supabase.createClient) return;     // sem biblioteca: só modo local
     sb = window.supabase.createClient(CFG.url, CFG.key, {
       auth: { persistSession: true, autoRefreshToken: true, storageKey: "divine_auth" },
+      // ao fechar a aba, o navegador cancela envios normais; "keepalive" deixa terminar
+      // (limite de ~64 KB por envio — projetos com fotos ficam cobertos pelo aviso abaixo)
+      global: { fetch: (url, o) => {
+        o = o || {};
+        if (saindo && o.body && String(o.body).length < 60000) o = Object.assign({}, o, { keepalive: true });
+        return fetch(url, o);
+      } },
     });
     window.addEventListener("online", () => sincronizar());
     window.addEventListener("focus", () => sincronizar());
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) sincronizar(); });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) { saindo = true; enviarAgora(); }       // trocou de aba / minimizou / vai fechar
+      else { saindo = false; sincronizar(); }
+    });
+    window.addEventListener("pagehide", () => { saindo = true; enviarAgora(); });
+    // aviso padrão do navegador SÓ se há algo não enviado e há internet
+    // (offline, esperar não adianta: os dados já estão salvos neste computador)
+    window.addEventListener("beforeunload", e => {
+      if (!navigator.onLine || !temPendencia()) return;
+      saindo = true; enviarAgora();
+      e.preventDefault(); e.returnValue = "";
+    });
     let sessao = null;
     try { sessao = (await sb.auth.getSession()).data.session; } catch (e) {}
     if (sessao && sessao.user) {
