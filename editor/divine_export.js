@@ -12,7 +12,7 @@
   const C = {
     CHOC: "3E2419", CHOC2: "5A3A2A", CHOC3: "7A5238", RED: "A83224",
     GOLD: "C9932E", GOLDLT: "E0A53A", CREAM: "FBF6EA", CREAM2: "F4EAD7",
-    CREAM3: "F9F3E4", LINE: "E3D6BF", INK: "2A1B12", MUTE: "9C8C72",
+    CREAM3: "F9F3E4", LINE: "E3D6BF", INK: "2A1B12", MUTE: "776650",
     WHITE: "FFFFFF", CREAMTXT: "E7D8C2",
     G: "43A047", GD: "2E7D32", GB: "E6F1E3",
     A: "E0A53A", AD: "9A6A12", AB: "FBEFD3",
@@ -20,16 +20,16 @@
     N: "CDBDA4", ND: "8A7A66",
     OBS_BG: "FDF3DC", OBS_LN: "E8CF93",
   };
-  const FONT = "Segoe UI", SCRIPT = "Segoe Script";
+  const FONT = "Segoe UI", SCRIPT = "Segoe Script", SERIF = "Georgia";
   const NOLINE = { color: C.WHITE, width: 0, transparency: 100 };
 
   const STATUS_GERAL = {
-    "EM ANDAMENTO":  { fill: C.GOLDLT, tc: C.INK },
-    "CONCLUÍDO":     { fill: C.G,      tc: C.WHITE },
-    "PAUSADO":       { fill: C.N,      tc: C.INK },
-    "EM TESTE":      { fill: C.AB,     tc: C.AD },
-    "PLANEJAMENTO":  { fill: C.CREAM2, tc: C.CHOC },
-    "CANCELADO":     { fill: C.R,      tc: C.WHITE },
+    "EM ANDAMENTO":  { fill: "F4BE52", tc: "3A2306" },
+    "CONCLUÍDO":     { fill: "52B356", tc: C.WHITE },
+    "PAUSADO":       { fill: "E4D8C2", tc: "4E3F2C" },
+    "EM TESTE":      { fill: "FFF0CC", tc: "7A520A" },
+    "PLANEJAMENTO":  { fill: "F3E7D2", tc: "4E3122" },
+    "CANCELADO":     { fill: "D9483B", tc: C.WHITE },
   };
 
   // grupos do portfólio pelo "Status geral" — mesma regra no editor e na apresentação
@@ -99,7 +99,7 @@
     slide.addShape("rect", { x: 0, y: 0.98, w: 13.333, h: 0.028, fill: { color: C.GOLD }, line: NOLINE });
     const txX = logo(slide);
     slide.addText(eyebrow, { x: txX + 0.02, y: 0.155, w: 8.0, h: 0.25, fontSize: 10, bold: true, color: C.GOLDLT, fontFace: FONT, margin: 0 });
-    slide.addText(title, { x: txX, y: 0.375, w: 8.0, h: 0.55, fontSize: 25, bold: true, color: C.WHITE, fontFace: FONT, margin: 0 });
+    slide.addText(title, { x: txX, y: 0.36, w: 8.0, h: 0.58, fontSize: 26, bold: true, color: C.WHITE, fontFace: SERIF, margin: 0 });
     if (prioridade) {
       slide.addText("PRIORIDADE", { x: 9.35, y: 0.14, w: 1.55, h: 0.2, fontSize: 8, bold: true, color: C.CREAMTXT, align: "center", fontFace: FONT, margin: 0 });
       slide.addText(prioridade, pillOpts(9.35, 0.40, 1.55, 0.40, C.WHITE, C.CHOC, 11.5));
@@ -151,7 +151,8 @@
   }
 
   function card(slide, x, y, w, h, name) {
-    slide.addShape("roundRect", { rectRadius: 0.09, x, y, w, h, fill: { color: C.WHITE }, line: { color: C.LINE, width: 1 }, ...(name ? { objectName: name } : {}) });
+    slide.addShape("roundRect", { rectRadius: 0.11, x, y, w, h, fill: { color: C.WHITE }, line: { color: "EADFC8", width: 0.75 },
+      shadow: { type: "outer", color: "3E2419", opacity: 0.10, blur: 8, offset: 2, angle: 90 }, ...(name ? { objectName: name } : {}) });
   }
 
   function bulletText(items, x, y, w, h, name) {
@@ -171,9 +172,16 @@
 
     // card esquerdo — status detalhado
     card(s, 0.35, 1.62, 6.55, 5.42);
-    s.addText("STATUS DETALHADO", { x: 0.62, y: 1.82, w: 4, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0 });
+    s.addText("Status detalhado", { x: 0.62, y: 1.82, w: 4, h: 0.26, fontSize: 14, bold: true, color: C.CHOC, fontFace: SERIF, margin: 0 });
 
     const etapas = p.etapas || [];
+    { const ok = etapas.filter(e => e.st === "g").length, pct = etapas.length ? ok / etapas.length : 0;
+      const bx = 4.30, by = 1.80;
+      s.addShape("roundRect", { rectRadius: 0.15, x: bx, y: by, w: 2.40, h: 0.30, fill: { color: "EDF6EA" }, line: NOLINE });
+      s.addShape("roundRect", { rectRadius: 0.04, x: bx + 0.14, y: by + 0.12, w: 0.80, h: 0.07, fill: { color: "CFE6C9" }, line: NOLINE });
+      if (pct > 0) s.addShape("roundRect", { rectRadius: 0.04, x: bx + 0.14, y: by + 0.12, w: Math.max(0.07, 0.80 * pct), h: 0.07, fill: { color: C.G }, line: NOLINE });
+      s.addText(ok + " de " + etapas.length + " concluídas", { x: bx + 1.02, y: by, w: 1.34, h: 0.30, fontSize: 9.5, bold: true, color: "1F6A25", fontFace: FONT, margin: 0, valign: "middle" });
+    }
     const tx = 0.62, ty = 2.18, colW = [2.85, 0.72, 1.45, 1.00];
     const hdrH = 0.32;
     const rowH = Math.min(0.442, Math.max(0.30, 4.42 / Math.max(etapas.length, 1)));
@@ -202,17 +210,17 @@
     // coluna direita — entram em cascata (grupos 1, 2, 3)
     card(s, 7.10, 1.62, 5.85, 1.66, "av|1");
     iconCircle(s, 7.36, 1.83, C.A, "!", "av|1");
-    s.addText("PENDÊNCIAS", { x: 7.73, y: 1.845, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.AD, fontFace: FONT, margin: 0, objectName: "av|1" });
+    s.addText("Pendências", { x: 7.73, y: 1.845, w: 4.5, h: 0.26, fontSize: 14, bold: true, color: C.AD, fontFace: SERIF, margin: 0, objectName: "av|1" });
     let [tp, op] = bulletText(p.pend, 7.46, 2.24, 5.28, 0.95, "av|1"); s.addText(tp, op);
 
     card(s, 7.10, 3.42, 5.85, 1.66, "av|2");
     iconCircle(s, 7.36, 3.63, C.G, "→", "av|2");
-    s.addText("PRÓXIMAS AÇÕES", { x: 7.73, y: 3.645, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.GD, fontFace: FONT, margin: 0, objectName: "av|2" });
+    s.addText("Próximas ações", { x: 7.73, y: 3.645, w: 4.5, h: 0.26, fontSize: 14, bold: true, color: C.GD, fontFace: SERIF, margin: 0, objectName: "av|2" });
     [tp, op] = bulletText(p.acoes, 7.46, 4.04, 5.28, 0.95, "av|2"); s.addText(tp, op);
 
     card(s, 7.10, 5.22, 5.85, 1.82, "av|3");
     iconCircle(s, 7.36, 5.43, C.GOLDLT, "✎", "av|3");
-    s.addText("OBSERVAÇÕES E COMENTÁRIOS", { x: 7.73, y: 5.445, w: 4.7, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0, objectName: "av|3" });
+    s.addText("Observações e comentários", { x: 7.73, y: 5.445, w: 4.7, h: 0.26, fontSize: 14, bold: true, color: C.CHOC, fontFace: SERIF, margin: 0, objectName: "av|3" });
     s.addText(p.obs || "—", { x: 7.46, y: 5.85, w: 5.28, h: 1.05, fontSize: 10.5, italic: true, color: C.CHOC2, fontFace: FONT, margin: 0, valign: "top", objectName: "av|3" });
 
     footer(s, true);
@@ -263,7 +271,7 @@
     // ---- card de imagens (esquerda) — grupo 1 ----
     card(s, 0.35, 1.30, 7.55, 5.60, "av|1");
     iconCircle(s, 0.61, 1.52, C.GOLDLT, "◨", "av|1");
-    s.addText("IMAGENS DO PRODUTO", { x: 0.98, y: 1.535, w: 4.5, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0, objectName: "av|1" });
+    s.addText("Imagens do produto", { x: 0.98, y: 1.535, w: 4.5, h: 0.26, fontSize: 14, bold: true, color: C.CHOC, fontFace: SERIF, margin: 0, objectName: "av|1" });
 
     const imgs = (p.imgs && p.imgs.length ? p.imgs : (p.img ? [p.img] : [])).slice(0, 6);
     const ax = 0.61, ay = 1.98, aw = 7.03, ah = 4.66, gap = 0.14;
@@ -290,7 +298,7 @@
     // ---- card orçamento (direita) — grupo 2 ----
     card(s, 8.10, 1.30, 4.90, 5.60, "av|2");
     iconCircle(s, 8.36, 1.52, C.GOLD, "$", "av|2");
-    s.addText("ORÇAMENTO", { x: 8.73, y: 1.535, w: 3.5, h: 0.26, fontSize: 11.5, bold: true, color: C.CHOC, fontFace: FONT, margin: 0, objectName: "av|2" });
+    s.addText("Orçamento", { x: 8.73, y: 1.535, w: 3.5, h: 0.26, fontSize: 14, bold: true, color: C.CHOC, fontFace: SERIF, margin: 0, objectName: "av|2" });
 
     const o = p.orc || {};
     const fx = 8.38, fw = 4.34;
@@ -330,7 +338,7 @@
     }
     s.addShape("rect", { x: 0, y: 7.34, w: 13.333, h: 0.16, fill: { color: C.GOLD }, line: NOLINE });
     s.addText("P & D   ·   P E S Q U I S A   &   D E S E N V O L V I M E N T O", { x: 0.95, y: 1.55, w: 10, h: 0.35, fontSize: 12, bold: true, color: C.GOLDLT, fontFace: FONT, margin: 0, objectName: "av|1" });
-    s.addText("Acompanhamento\nde Projetos", { x: 0.92, y: 2.0, w: 11, h: 1.9, fontSize: 45, bold: true, color: C.WHITE, fontFace: FONT, margin: 0, valign: "top", objectName: "av|2" });
+    s.addText("Acompanhamento\nde Projetos", { x: 0.92, y: 2.0, w: 11, h: 1.9, fontSize: 48, bold: true, color: C.WHITE, fontFace: SERIF, margin: 0, valign: "top", objectName: "av|2" });
     s.addText("Status do portfólio de novos produtos — andamento, pendências e próximos passos, projeto a projeto.", { x: 0.95, y: 4.05, w: 8.6, h: 0.75, fontSize: 15, color: C.CREAMTXT, fontFace: FONT, margin: 0, objectName: "av|3" });
     s.addText("Reunião  ·  " + (ciclo || ""), { shape: "roundRect", rectRadius: 0.26, x: 0.95, y: 5.0, w: 3.3, h: 0.52, fill: { color: C.CHOC }, line: { color: C.GOLD, width: 1.25 }, fontSize: 13, bold: true, color: "F4E6CC", align: "center", valign: "middle", margin: 0, fontFace: FONT, objectName: "av|4" });
     if (LOGO && LOGO.WORDMARK) {
@@ -352,7 +360,7 @@
       s.addShape("ellipse", { x: 11.5, y: 5.3, w: 3.4, h: 3.4, fill: { color: "472B1C" }, line: NOLINE });
     }
     s.addShape("rect", { x: 0, y: 7.34, w: 13.333, h: 0.16, fill: { color: C.GOLD }, line: NOLINE });
-    s.addText("Muito obrigada!", { x: 0.92, y: 2.55, w: 11.5, h: 1.3, fontSize: 54, bold: true, color: C.WHITE, fontFace: FONT, margin: 0, objectName: "av|1" });
+    s.addText("Muito obrigada!", { x: 0.92, y: 2.55, w: 11.5, h: 1.3, fontSize: 58, bold: true, color: C.WHITE, fontFace: SERIF, margin: 0, objectName: "av|1" });
     s.addText("Divine Chocolates · Pesquisa & Desenvolvimento", { x: 0.95, y: 3.95, w: 10, h: 0.4, fontSize: 15, color: C.CREAMTXT, fontFace: FONT, margin: 0, objectName: "av|2" });
     if (LOGO && LOGO.WORDMARK) {
       const lh = 0.9, lw = lh * LOGO.WM_AR;
@@ -377,7 +385,7 @@
       const nm = "av|" + (k + 1), x = x0 + k * (w + gap);
       card(s, x, y, w, h, nm);
       iconCircle(s, x + 0.26, y + 0.22, cor, sym, nm);
-      s.addText(titulo + "  (" + itens.length + ")", { x: x + 0.63, y: y + 0.235, w: w - 0.8, h: 0.26, fontSize: 11.5, bold: true, color: tc, fontFace: FONT, margin: 0, objectName: nm });
+      s.addText(titulo.charAt(0) + titulo.slice(1).toLowerCase() + "  (" + itens.length + ")", { x: x + 0.63, y: y + 0.215, w: w - 0.8, h: 0.3, fontSize: 14, bold: true, color: tc, fontFace: SERIF, margin: 0, objectName: nm });
       const lx = x + 0.30, ly = y + 0.70, lw = w - 0.55, lh = h - 0.95;
       if (!itens.length) {
         s.addText("Nenhum projeto", { x: lx, y: ly, w: lw, h: 0.3, fontSize: 10.5, italic: true, color: C.MUTE, fontFace: FONT, margin: 0, objectName: nm });
