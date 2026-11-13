@@ -129,3 +129,179 @@ create policy "config: ler" on public.config
 drop policy if exists "config: atualizar" on public.config;
 create policy "config: atualizar" on public.config
   for update to authenticated using (public.eh_membro()) with check (public.eh_membro());
+
+-- =====================================================================
+-- 6) AUDITORIA — histórico à prova de adulteração
+--
+-- Cada criação, edição (com o "de → para" de cada campo), exclusão,
+-- restauração e exclusão definitiva é registrada PELO PRÓPRIO BANCO.
+-- A equipe só pode LER o histórico: ninguém consegue editar nem apagar
+-- registros pelo editor ou pela chave do site. O horário é o do servidor.
+-- Guardado para sempre (texto leve; as fotos não entram no histórico).
+-- =====================================================================
+create table if not exists public.auditoria (
+  id           bigint generated always as identity primary key,
+  em           timestamptz not null default now(),
+  usuario_id   uuid,
+  usuario_nome text not null default '',
+  projeto_id   uuid,                         -- sem chave estrangeira: o registro sobrevive à exclusão definitiva
+  projeto_nome text not null default '',
+  acao         text not null,                -- criou | editou | excluiu | restaurou | apagou | ciclo | pptx | importou | motivo
+  mudancas     jsonb not null default '[]'::jsonb,   -- [{campo, de, para, etapa?, tipo?}]
+  detalhe      text not null default ''
+);
+create index if not exists auditoria_projeto_em on public.auditoria (projeto_id, em desc);
+create index if not exists auditoria_em on public.auditoria (em desc);
+
+-- valor de um campo do projeto como texto legível
+create or replace function public.aud_txt(v jsonb) returns text
+language sql immutable as $$
+  select case
+    when v is null or v = 'null'::jsonb then ''
+    when jsonb_typeof(v) = 'array' then (select coalesce(string_agg(x, '; '), '') from jsonb_array_elements_text(v) x)
+    when jsonb_typeof(v) = 'string' then v #>> '{}'
+    else v::text end
+$$;
+
+-- compara duas versões do projeto e devolve a lista do que mudou
+create or replace function public.aud_diff(a jsonb, b jsonb) returns jsonb
+language plpgsql immutable as $$
+declare
+  r jsonb := '[]'::jsonb;
+  c record; ea jsonb; eb jsonb; nm text; na int; nb int;
+  st jsonb := '{"n":"não iniciada","a":"em andamento","g":"concluída","r":"bloqueada"}';
+begin
+  for c in select * from (values ('nome','Nome'),('prioridade','Prioridade'),('statusGeral','Status geral'),
+      ('resp','Responsável'),('abertura','Data de abertura'),('linkPesquisa','Link da pesquisa'),
+      ('pend','Pendências'),('acoes','Próximas ações'),('obs','Observações')) v(k, rot) loop
+    if public.aud_txt(a -> c.k) is distinct from public.aud_txt(b -> c.k) then
+      r := r || jsonb_build_object('campo', c.rot, 'de', left(public.aud_txt(a -> c.k), 400), 'para', left(public.aud_txt(b -> c.k), 400));
+    end if;
+  end loop;
+  for c in select * from (values ('estimado','Custo estimado'),('real','Custo real'),('fornecedor','Fornecedor(es)'),
+      ('aprovacao','Aprovação'),('obs','Observações do orçamento')) v(k, rot) loop
+    if public.aud_txt(a -> 'orc' -> c.k) is distinct from public.aud_txt(b -> 'orc' -> c.k) then
+      r := r || jsonb_build_object('campo', c.rot, 'de', left(public.aud_txt(a -> 'orc' -> c.k), 400), 'para', left(public.aud_txt(b -> 'orc' -> c.k), 400));
+    end if;
+  end loop;
+  -- fotos: só a quantidade (as imagens em si não vão para o histórico)
+  na := jsonb_array_length(coalesce(a -> 'imgs', '[]'::jsonb));
+  nb := jsonb_array_length(coalesce(b -> 'imgs', '[]'::jsonb));
+  if na <> nb then
+    r := r || jsonb_build_object('campo', 'Fotos', 'de', na || ' foto(s)', 'para', nb || ' foto(s)');
+  elsif (a -> 'imgs') is distinct from (b -> 'imgs') then
+    r := r || jsonb_build_object('campo', 'Fotos', 'de', na || ' foto(s)', 'para', nb || ' foto(s), substituídas ou reordenadas');
+  end if;
+  -- etapas: comparadas pelo nome
+  for eb in select * from jsonb_array_elements(coalesce(b -> 'etapas', '[]'::jsonb)) loop
+    nm := eb ->> 'n';
+    ea := null;
+    select e into ea from jsonb_array_elements(coalesce(a -> 'etapas', '[]'::jsonb)) e where e ->> 'n' = nm limit 1;
+    if ea is null then
+      r := r || jsonb_build_object('campo', 'Etapa adicionada', 'de', '', 'para', nm);
+    else
+      if ea ->> 'st' is distinct from eb ->> 'st' then
+        r := r || jsonb_build_object('campo', 'Etapa “' || nm || '”', 'de', coalesce(st ->> (ea ->> 'st'), ''),
+                                     'para', coalesce(st ->> (eb ->> 'st'), ''), 'etapa', nm, 'tipo', 'status');
+      end if;
+      if coalesce(ea ->> 'resp', '') is distinct from coalesce(eb ->> 'resp', '') then
+        r := r || jsonb_build_object('campo', 'Responsável da etapa “' || nm || '”', 'de', coalesce(ea ->> 'resp', ''), 'para', coalesce(eb ->> 'resp', ''));
+      end if;
+      if coalesce(ea ->> 'prev', '') is distinct from coalesce(eb ->> 'prev', '') then
+        r := r || jsonb_build_object('campo', 'Previsto da etapa “' || nm || '”', 'de', coalesce(ea ->> 'prev', ''), 'para', coalesce(eb ->> 'prev', ''));
+      end if;
+    end if;
+  end loop;
+  for ea in select * from jsonb_array_elements(coalesce(a -> 'etapas', '[]'::jsonb)) loop
+    if not exists (select 1 from jsonb_array_elements(coalesce(b -> 'etapas', '[]'::jsonb)) e where e ->> 'n' = ea ->> 'n') then
+      r := r || jsonb_build_object('campo', 'Etapa removida', 'de', ea ->> 'n', 'para', '');
+    end if;
+  end loop;
+  if jsonb_array_length(r) = 0
+     and (select jsonb_agg(e ->> 'n') from jsonb_array_elements(coalesce(a -> 'etapas', '[]'::jsonb)) e)
+         is distinct from (select jsonb_agg(e ->> 'n') from jsonb_array_elements(coalesce(b -> 'etapas', '[]'::jsonb)) e) then
+    r := r || jsonb_build_object('campo', 'Ordem das etapas', 'de', '', 'para', 'alterada');
+  end if;
+  return r;
+end $$;
+
+create or replace function public.aud_nome() returns text
+language sql stable security definer set search_path = public as $$
+  select coalesce((select nome from public.membros where user_id = auth.uid()), '')
+$$;
+
+-- gatilho: registra tudo o que acontece com os projetos
+create or replace function public.audita_projeto() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare m jsonb;
+begin
+  if tg_op = 'INSERT' then
+    insert into public.auditoria (usuario_id, usuario_nome, projeto_id, projeto_nome, acao)
+    values (auth.uid(), public.aud_nome(), new.id, coalesce(new.dados ->> 'nome', ''), 'criou');
+    return null;
+  elsif tg_op = 'DELETE' then
+    insert into public.auditoria (usuario_id, usuario_nome, projeto_id, projeto_nome, acao, detalhe)
+    values (auth.uid(), public.aud_nome(), old.id, coalesce(old.dados ->> 'nome', ''), 'apagou', 'Apagado de vez (lixeira esvaziada)');
+    return null;
+  end if;
+  if old.excluido_em is null and new.excluido_em is not null then
+    insert into public.auditoria (usuario_id, usuario_nome, projeto_id, projeto_nome, acao, detalhe)
+    values (auth.uid(), public.aud_nome(), new.id, coalesce(new.dados ->> 'nome', ''), 'excluiu', 'Enviado para a lixeira');
+  elsif old.excluido_em is not null and new.excluido_em is null then
+    insert into public.auditoria (usuario_id, usuario_nome, projeto_id, projeto_nome, acao, detalhe)
+    values (auth.uid(), public.aud_nome(), new.id, coalesce(new.dados ->> 'nome', ''), 'restaurou', 'Restaurado da lixeira');
+  end if;
+  if new.dados is distinct from old.dados then
+    m := public.aud_diff(old.dados, new.dados);
+    if jsonb_array_length(m) > 0 then
+      insert into public.auditoria (usuario_id, usuario_nome, projeto_id, projeto_nome, acao, mudancas)
+      values (auth.uid(), public.aud_nome(), new.id, coalesce(new.dados ->> 'nome', ''), 'editou', m);
+    end if;
+  end if;
+  return null;
+end $$;
+
+drop trigger if exists audita on public.projetos;
+create trigger audita after insert or update or delete on public.projetos
+  for each row execute function public.audita_projeto();
+
+-- gatilho: ciclo da reunião (capa)
+create or replace function public.audita_config() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.ciclo is distinct from old.ciclo then
+    insert into public.auditoria (usuario_id, usuario_nome, acao, mudancas)
+    values (auth.uid(), public.aud_nome(), 'ciclo',
+            jsonb_build_array(jsonb_build_object('campo', 'Ciclo da reunião', 'de', old.ciclo, 'para', new.ciclo)));
+  end if;
+  return null;
+end $$;
+
+drop trigger if exists audita_cfg on public.config;
+create trigger audita_cfg after update on public.config
+  for each row execute function public.audita_config();
+
+-- eventos que acontecem no editor (não no banco): PowerPoint gerado, importação, motivo
+create or replace function public.registrar_evento(p_acao text, p_projeto uuid default null,
+                                                   p_detalhe text default '', p_mudancas jsonb default '[]'::jsonb)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.eh_membro() then raise exception 'sem permissão'; end if;
+  if p_acao not in ('pptx', 'importou', 'motivo') then raise exception 'ação inválida: %', p_acao; end if;
+  insert into public.auditoria (usuario_id, usuario_nome, projeto_id, projeto_nome, acao, detalhe, mudancas)
+  values (auth.uid(), public.aud_nome(), p_projeto,
+          coalesce((select dados ->> 'nome' from public.projetos where id = p_projeto), ''),
+          p_acao, left(coalesce(p_detalhe, ''), 2000), coalesce(p_mudancas, '[]'::jsonb));
+end $$;
+
+-- segurança: a equipe só LÊ o histórico; gravação apenas pelos gatilhos/função acima
+alter table public.auditoria enable row level security;
+revoke all on public.auditoria from anon, authenticated;
+grant select on public.auditoria to authenticated;
+drop policy if exists "auditoria: equipe le" on public.auditoria;
+create policy "auditoria: equipe le" on public.auditoria
+  for select to authenticated using (public.eh_membro());
+
+revoke all on function public.registrar_evento(text, uuid, text, jsonb) from public, anon;
+grant execute on function public.registrar_evento(text, uuid, text, jsonb) to authenticated;
+revoke all on function public.audita_projeto(), public.audita_config(), public.aud_nome() from public, anon, authenticated;
