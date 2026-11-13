@@ -317,6 +317,82 @@ input.erro{border-color:#D9483B!important;box-shadow:0 0 0 3px rgba(217,72,59,.1
 }
 @media (prefers-reduced-motion:reduce){::picker(select){transition:none}select::picker-icon{transition:none}}
 
+
+/* ============ NUVEM (login, status, menu, janelas) ============ */
+.nuvem{display:flex;align-items:center;gap:10px}
+.nstatus{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#E9DCC5;white-space:nowrap}
+.nstatus i{width:8px;height:8px;border-radius:50%;background:#7CC36B;box-shadow:0 0 0 3px rgba(124,195,107,.18)}
+.nstatus.sync i{background:#F4BE52;box-shadow:0 0 0 3px rgba(244,190,82,.2);animation:npulsa 1s ease-in-out infinite alternate}
+.nstatus.off i{background:#E8806F;box-shadow:0 0 0 3px rgba(232,128,111,.2)}
+.nstatus.local i{background:#C9B49A;box-shadow:none}
+@keyframes npulsa{to{opacity:.35}}
+.nuser{gap:8px;padding:5px 12px 5px 5px}
+.nuser .av{width:26px;height:26px;border-radius:50%;background:var(--gold-grad);color:#2A1704;display:inline-flex;
+  align-items:center;justify-content:center;font-size:12.5px;font-weight:800}
+.numenu{position:fixed;z-index:120;min-width:220px;background:#fff;border:1px solid #EADFC8;border-radius:12px;padding:6px;
+  box-shadow:0 14px 34px -10px rgba(62,36,25,.32);animation:nmenu 160ms var(--ease-out)}
+@keyframes nmenu{from{opacity:0;transform:translateY(-4px) scale(.98)}}
+.numenu .numail{font-size:12px;color:var(--mute);padding:8px 12px 6px;border-bottom:1px solid var(--line2);margin-bottom:4px}
+.numenu button{display:block;width:100%;text-align:left;border:0;background:transparent;font:inherit;font-size:13.5px;
+  font-weight:500;color:var(--ink);padding:9px 12px;border-radius:8px;cursor:pointer}
+.numenu button:hover,.numenu button:focus-visible{background:var(--cream);outline:0}
+.numenu button.sair{color:var(--rd)}
+.quem{font-size:11.5px;color:var(--mute);margin-top:6px;min-height:1em}
+.nmodal-ov{position:fixed;inset:0;z-index:110;background:rgba(42,23,4,.45);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;padding:20px;animation:nfade 180ms ease-out}
+.nmodal-ov.login{background:radial-gradient(900px 500px at 50% 0%,#6B3A22 0%,#2E1A11 70%)}
+@keyframes nfade{from{opacity:0}}
+.nmodal{background:#fff;border-radius:16px;padding:26px 28px;width:min(440px,100%);max-height:90vh;overflow:auto;
+  box-shadow:0 24px 60px -16px rgba(0,0,0,.45);animation:nsobe 220ms var(--ease-out)}
+@keyframes nsobe{from{opacity:0;transform:translateY(8px) scale(.98)}}
+.nmodal h2,.nmodal h3{font-family:var(--serif);color:var(--choc);font-weight:600}
+.nmodal h2{font-size:22px;text-align:center;margin-bottom:4px}
+.nmodal h3{font-size:19px;margin-bottom:6px}
+.nmodal input[type=password]{font:inherit;font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--line);
+  border-radius:8px;padding:9px 12px;width:100%;height:42px;transition:border-color 150ms ease,box-shadow 150ms ease}
+.nmodal input[type=password]:focus{outline:0;border-color:var(--goldlt);box-shadow:0 0 0 3px rgba(224,165,58,.18)}
+.nmodal input[type=text]{height:42px}
+.nlogo{display:block;height:58px;width:auto;margin:2px auto 14px}
+.nlogo-txt{text-align:center;font-family:"Segoe Script",cursive;font-size:34px;color:var(--gold);margin-bottom:10px}
+.nsub{display:block;font-size:12.5px;color:var(--mute);line-height:1.5}
+.nlogin .nsub{text-align:center;margin-bottom:20px}
+.nerro{min-height:18px;font-size:12.5px;font-weight:600;color:#B23A2A;margin:10px 0 4px}
+.nfull{width:100%;height:44px;font-size:14.5px}
+.ndica{font-size:12px;color:var(--mute);text-align:center;margin-top:12px}
+.nlocal{display:block;margin:8px auto 0;color:var(--choc3)!important;font-size:12.5px}
+.nopc{text-transform:none;letter-spacing:0;font-weight:500}
+.nbotoes{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.ntexto{font-size:14px;line-height:1.6;color:var(--choc2);margin-top:6px}
+.btn.perigo{background:#C0392F;color:#fff}
+.nlixo{margin-top:14px;max-height:340px;overflow:auto;border:1px solid var(--line2);border-radius:10px}
+.nlixo-it{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line2)}
+.nlixo-it:last-child{border-bottom:0}
+.nlixo-it b{display:block;font-size:13.5px;color:var(--choc)}
+.nvazio{padding:22px;text-align:center;font-size:13px;color:var(--mute)}
+@media(max-width:1020px){.nstatus span{display:none}}
+@media (prefers-reduced-motion:reduce){.nmodal-ov,.nmodal,.numenu{animation:none}.nstatus.sync i{animation:none}}
+
+
+/* ============ HISTÓRICO (auditoria) ============ */
+.phead .bhist{margin-left:12px}
+.nmodal.larga{width:min(680px,100%)}
+.nhist{margin-top:14px;max-height:56vh;overflow:auto;padding:4px 4px 4px 2px}
+.nh-it{display:flex;gap:12px;position:relative;padding:0 0 16px 0}
+.nh-it:not(:last-child)::before{content:"";position:absolute;left:5px;top:16px;bottom:0;width:2px;background:var(--line2)}
+.nh-dot{width:12px;height:12px;border-radius:50%;margin-top:4px;flex:none;background:var(--goldlt);box-shadow:0 0 0 3px #FBEFD3}
+.nh-it.a .nh-dot{background:#43A047;box-shadow:0 0 0 3px #DDF0D9}
+.nh-it.x .nh-dot{background:#D9483B;box-shadow:0 0 0 3px #F9DDD6}
+.nh-it.p .nh-dot{background:#7A5238;box-shadow:0 0 0 3px #F3E7D2}
+.nh-it.m .nh-dot{background:#B07E14;box-shadow:0 0 0 3px #FFF0CC}
+.nh-txt{flex:1;min-width:0}
+.nh-cab{font-size:13.5px;color:var(--choc2)}
+.nh-cab b{color:var(--choc)}
+.nh-cab span{float:right;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.nh-det{margin-top:4px;font-size:13px;color:var(--choc2);background:var(--cream);border-left:3px solid var(--goldlt);padding:6px 10px;border-radius:0 6px 6px 0}
+.nh-txt ul{margin:6px 0 0 16px;font-size:12.5px;color:var(--choc2);line-height:1.6}
+.nh-txt s{color:var(--mute)}
+.nmodal textarea{width:100%;min-height:90px}
+
 /* foco visível só para teclado */
 .btn:focus-visible,.pitem:focus-visible,.pgrp:focus-visible,.stbtn:focus-visible,.rowdel:focus-visible,
 .addtile:focus-visible,.thumb .x:focus-visible,.toast .undo:focus-visible{outline:0;box-shadow:var(--ring)}
@@ -335,6 +411,7 @@ input.erro{border-color:#D9483B!important;box-shadow:0 0 0 3px rgba(217,72,59,.1
     <div class="sub">Divine Chocolates · Pesquisa & Desenvolvimento</div>
   </div>
   <span class="spacer"></span>
+  <div class="nuvem" id="nuvemArea"></div>
   <button class="btn ghost" onclick="saveJSON()">Exportar dados</button>
   <button class="btn ghost" onclick="document.getElementById('imp').click()">Importar dados</button>
   <input id="imp" type="file" accept="application/json" style="display:none" onchange="loadJSON(event)">
@@ -370,7 +447,7 @@ input.erro{border-color:#D9483B!important;box-shadow:0 0 0 3px rgba(217,72,59,.1
   <div class="main">
 
     <div class="panel">
-      <div class="phead"><span class="n">01</span><b>Identificação do projeto</b><span class="hint">Slide 1 · cabeçalho</span></div>
+      <div class="phead"><span class="n">01</span><b>Identificação do projeto</b><span class="hint">Slide 1 · cabeçalho</span><button class="btn soft sm bhist" id="btnHist" hidden onclick="Nuvem.historico()"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 4v5h5M12 7v5l3 2"/></svg>Histórico</button></div>
       <div class="pbody">
         <div class="grid12">
           <div class="c6"><label class="fl">Nome do projeto</label>
@@ -390,7 +467,8 @@ input.erro{border-color:#D9483B!important;box-shadow:0 0 0 3px rgba(217,72,59,.1
             <input type="text" id="f_ab" inputmode="numeric" placeholder="dd/mm/aaaa" oninput="mascaraData(this);P().abertura=this.value;save();validaData(this,false)" onblur="validaData(this,true)">
             <div class="ferr" id="f_ab_err">Data inválida — use dd/mm/aaaa</div></div>
           <div class="c4"><label class="fl">Atualizado em</label>
-            <div class="rofield" id="f_at" title="Preenchido automaticamente com a data de hoje"><span id="f_at_val">—</span><span class="auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4.5v5h-5"/></svg>automático</span></div></div>
+            <div class="rofield" id="f_at" title="Preenchido automaticamente com a data de hoje"><span id="f_at_val">—</span><span class="auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4.5v5h-5"/></svg>automático</span></div>
+            <div class="quem" id="f_quem"></div></div>
           <div class="c12"><label class="fl"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:4px"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>Link da pesquisa de mercado</label>
             <input type="text" id="f_link" placeholder="https://… (cole o link da pesquisa deste projeto)" oninput="P().linkPesquisa=this.value;save()"></div>
         </div>
@@ -471,6 +549,7 @@ input.erro{border-color:#D9483B!important;box-shadow:0 0 0 3px rgba(217,72,59,.1
 
 <!--PPTXGEN-->
 <!--EXPORT-->
+<!--NUVEM-->
 <script>
 /* ================= estado ================= */
 const KEY = "divine_editor_v1";
@@ -554,12 +633,19 @@ function migrate(s) {
   });
   return s;
 }
+// modo "só neste computador" usa KEY (como sempre); modo nuvem usa uma cópia local separada
+function chaveDados() { return window.Nuvem ? Nuvem.chaveDados() : KEY; }
 function load() {
-  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.projects && s.projects.length) return migrate(s); } catch (e) {}
+  try { const s = JSON.parse(localStorage.getItem(chaveDados())); if (s && s.projects && s.projects.length) return migrate(s); } catch (e) {}
   return JSON.parse(JSON.stringify(DEFAULT));
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {
-  toast("Atenção: não consegui salvar (imagens muito grandes?). Exporte os dados como backup."); } }
+function save() {
+  try { localStorage.setItem(chaveDados(), JSON.stringify(state)); } catch (e) {
+    toast("Atenção: não consegui salvar (imagens muito grandes?). Exporte os dados como backup."); }
+  if (window.Nuvem && Nuvem.ativo()) Nuvem.agendar();
+}
+// campos auxiliares da nuvem (_id, _versao…) nunca entram em cópias nem no JSON
+const semAuxiliares = (k, v) => (k && k[0] === "_" ? undefined : v);
 function P() { return state.projects[state.sel]; }
 function linhas(v) { return v.split("\n").map(s => s.trim()).filter(Boolean); }
 function esc(v) { return (v || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
@@ -582,9 +668,21 @@ function toggleGrupo(id) {
   renderList(); _grupoAbrindo = null;
 }
 function abreGrupoSel() { if (P()) setGrupo(DivineExport.grupoDe(P()), true); }
-function mudaStatusGeral(v) {
+async function mudaStatusGeral(v) {
+  const p = P(), anterior = p.statusGeral || "PLANEJAMENTO";
+  let motivo = "";
+  // na nuvem, pausar ou cancelar exige motivo (vai para o histórico)
+  if (window.Nuvem && Nuvem.ativo() && (v === "PAUSADO" || v === "CANCELADO") && v !== anterior) {
+    motivo = await Nuvem.pedirMotivo(p, v);
+    if (!motivo) {
+      document.getElementById("f_sg").value = anterior; paintSG();
+      toast("Status mantido: o motivo é obrigatório para pausar ou cancelar.");
+      return;
+    }
+  }
   const antes = DivineExport.grupoDe(P());
   P().statusGeral = v; save();
+  if (motivo) Nuvem.registrarMotivo(p, v, motivo);
   const depois = DivineExport.grupoDe(P());
   abreGrupoSel(); paintSG();
   if (antes !== depois) toast("Projeto movido para “" + DivineExport.GRUPOS.find(g => g.id === depois).nome + "”.");
@@ -675,7 +773,7 @@ function reorder(list, from, to) {
 }
 function addProject() { state.projects.push(novoProjeto()); state.sel = state.projects.length - 1; abreGrupoSel(); save(); renderAll(); }
 function dupProject() {
-  const c = JSON.parse(JSON.stringify(P())); c.nome += " (cópia)";
+  const c = JSON.parse(JSON.stringify(P(), semAuxiliares)); c.nome += " (cópia)";
   state.projects.splice(state.sel + 1, 0, c); state.sel++; save(); renderAll();
 }
 function delProject() {
@@ -708,6 +806,7 @@ function renderForm() {
   // preservam a data de quando saíram da pauta
   if (DivineExport.grupoDe(p) === "ativos") p.atualizado = hoje();
   document.getElementById("f_at_val").textContent = p.atualizado || "—";
+  document.getElementById("f_quem").textContent = (window.Nuvem && Nuvem.quem(p)) || "";
   document.getElementById("f_link").value = p.linkPesquisa || "";
   document.getElementById("f_pend").value = (p.pend || []).join("\n");
   document.getElementById("f_acoes").value = (p.acoes || []).join("\n");
@@ -735,6 +834,7 @@ function renderEtapas() {
       <td class="cdel"><button class="rowdel" title="Remover etapa" aria-label="Remover etapa ${i + 1}" onclick="delEtapa(${i})">×</button></td>
     </tr>`).join("");
   renderProgresso();
+  if (window.Nuvem) Nuvem.marcaEtapas();
 }
 function cycleSt(i) {
   const e = P().etapas[i];
@@ -820,7 +920,7 @@ document.addEventListener("drop", e => e.preventDefault());
 
 /* ================= arquivo / export ================= */
 function saveJSON() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(state, semAuxiliares, 2)], { type: "application/json" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
   a.download = "divine_projetos_dados.json"; a.click();
   toast("Dados exportados — guarde o arquivo como backup.");
@@ -831,7 +931,12 @@ function loadJSON(ev) {
   rd.onload = e => {
     try {
       const s = JSON.parse(e.target.result);
-      if (s.projects && s.projects.length) { s.sel = 0; state = migrate(s); save(); renderAll(); toast("Dados importados!"); }
+      if (s.projects && s.projects.length) {
+        if (window.Nuvem && Nuvem.ativo() && !confirm("Importar vai SUBSTITUIR o portfólio da equipe na nuvem.\n" +
+            "Os projetos atuais vão para a lixeira (dá para restaurar). Continuar?")) return;
+        s.sel = 0; state = migrate(JSON.parse(JSON.stringify(s, semAuxiliares))); save(); renderAll(); toast("Dados importados!");
+        if (window.Nuvem && Nuvem.ativo()) Nuvem.registrar("importou", null, `Arquivo “${f.name}” com ${state.projects.length} projeto(s); os anteriores foram para a lixeira`);
+      }
       else alert("Arquivo inválido.");
     } catch (err) { alert("Não consegui ler o arquivo."); }
   };
@@ -853,6 +958,11 @@ function medeTodasImagens() {
   state.projects.forEach(p => (p.imgs || []).forEach(im => todas.push(im)));
   return Promise.all([...new Set(todas)].map(medeAR)).then(() => _arCache);
 }
+function registraPPTX() {
+  if (!(window.Nuvem && Nuvem.ativo())) return;
+  const ativos = DivineExport.agrupa(state.projects).ativos.map(x => x.p.nome || "(sem nome)");
+  Nuvem.registrar("pptx", null, `Ciclo “${state.ciclo || "—"}” · ${ativos.length} projeto(s) em andamento: ${ativos.join(", ")}`);
+}
 function baixarPPTX() {
   toast("Gerando PowerPoint…");
   state.projects.forEach(p => { if (DivineExport.grupoDe(p) === "ativos") p.atualizado = hoje(); });   // "atualizado em" = data da geração (só em andamento; os demais preservam o registro)
@@ -873,6 +983,7 @@ function baixarPPTX() {
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
         toast("PowerPoint gerado! Veja a pasta de downloads.");
+        registraPPTX();
       });
   }).catch(e => { alert("Erro ao gerar o PowerPoint: " + e.message); });
 }
@@ -906,6 +1017,7 @@ function aplicaLogo() {
 function renderAll() { renderList(); renderForm(); }
 aplicaLogo();
 renderAll();
+if (window.Nuvem) Nuvem.iniciar();
 </script>
 <!--INTRO-->
 </body>

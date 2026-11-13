@@ -1,0 +1,19 @@
+# Mantém o projeto Supabase ativo: o plano gratuito pausa após ~7 dias sem uso.
+# Duas chamadas por semana à função public.ping() (só devolve a hora do servidor).
+# A chave usada é a pública (a mesma que já está no editor).
+name: Mantém o Supabase ativo
+on:
+  schedule:
+    - cron: "17 13 * * 1,4"   # segundas e quintas, 10h17 em Brasília
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping no Supabase
+        env:
+          URL: https://osqibajvwoxzdugdwygn.supabase.co
+          KEY: sb_publishable_5UtARpzra6IMw6AwGPmL3A_zhqN6FzY
+        run: |
+          curl -fsS -X POST "$URL/rest/v1/rpc/ping" \
+            -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}'

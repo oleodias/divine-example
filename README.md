@@ -53,7 +53,9 @@ e funciona até offline.
 | 🖼️ | **Galeria de fotos** | Layout justificado que **respeita a proporção** de cada imagem, sem distorcer. |
 | 🔎 | **Pesquisa de mercado** | Link clicável direto no slide do projeto. |
 | ⬇️ | **Gerar PowerPoint** | `.pptx` nativo, editável, com transições *fade* e entradas em cascata. Slides completos só dos projetos em andamento, mais um **resumo** dos pausados, finalizados e cancelados. |
-| 💾 | **Salvamento automático** | Os dados ficam no navegador. **Exportar/Importar dados** (JSON) serve para backup e para compartilhar. |
+| ☁️ | **Nuvem da equipe** | Login com e-mail e senha; o portfólio é compartilhado e salvo automaticamente no Supabase, com aviso de edição simultânea e lixeira. |
+| 🧾 | **Histórico auditável** | Quem fez o quê e quando, com o "de → para" de cada campo, gravado pelo servidor e imutável. Motivo obrigatório ao pausar ou cancelar. |
+| 💾 | **Funciona offline** | Cópia local sempre salva; sincroniza ao reconectar. Modo "só neste computador" e **Exportar/Importar dados** (JSON) como backup. |
 | ✨ | **Animação de entrada** | A caligrafia "Divine" desenhada em dourado a cada acesso, com botão **Pular**. |
 | 📈 | **Progresso das etapas** | Barra em cada projeto da lista e selo **"X de Y concluídas"** no editor e no slide. |
 | ↩️ | **Desfazer** | Removeu uma etapa, foto ou projeto sem querer? O aviso traz o botão **Desfazer**. |
@@ -80,14 +82,15 @@ e funciona até offline.
 
 ## 🧭 Como usar
 
-1. Acesse **[oleodias.github.io/divine-example](https://oleodias.github.io/divine-example/)**.
+1. Acesse **[oleodias.github.io/divine-example](https://oleodias.github.io/divine-example/)** e entre com o seu
+   e-mail e senha (o administrador cria os acessos).
 2. Escolha um projeto no **Portfólio** (ou clique em **+ Novo projeto**).
 3. Preencha identificação, etapas, pendências, fotos e orçamento.
 4. Informe o **Ciclo da reunião** (ex.: *Julho / 2026*), que vai para a capa.
 5. Clique em **⬇ Gerar PowerPoint** e pronto!
 
-> 💡 **Dica:** os dados ficam salvos **neste navegador**. Use **Exportar dados** com
-> frequência para ter um backup e **Importar dados** para continuar em outro computador.
+> 💡 **Dica:** tudo é salvo sozinho na nuvem — o topo mostra **"Salvo na nuvem"**. Sem internet, o editor
+> continua funcionando e envia as alterações quando a conexão voltar. **Exportar dados** segue disponível como backup.
 
 ---
 
@@ -103,7 +106,9 @@ e funciona até offline.
 │   ├── divine-intro.js         ← animação de entrada da página
 │   ├── divine_logo.js / divine_capa.js / divine_intro_assets.js  ← imagens embutidas
 │   ├── processa_logo.py / processa_capa.py / processa_intro.py   ← preparam as imagens
+│   ├── divine_nuvem.js         ← login, sincronização com o Supabase, lixeira e histórico
 │   └── migra_dados.py          ← converte backups antigos para o formato atual
+├── supabase/schema.sql         ← banco: tabelas, regras de segurança e auditoria (rodar no SQL Editor)
 ├── apresentacao/               ← modelo estático em Python (python-pptx)
 ├── assets/                     ← arquivos originais da marca (logo, capa, caligrafia)
 └── docs/img/                   ← imagens deste README

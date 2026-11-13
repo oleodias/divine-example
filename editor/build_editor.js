@@ -39,6 +39,23 @@ for (const [fam, pkg, pesos] of FONTES) {
 if (fontes) console.log("fontes embutidas (Inter + Fraunces)");
 html = html.replace("<!--FONTS-->", () => fontes ? "<style>\n" + fontes + "</style>" : "");
 html = html.replace("<!--PPTXGEN-->", () => tag(bundle) + "\n" + tag(jszip));
+
+// ---- nuvem (Supabase): biblioteca embutida (funciona sem CDN) + módulo de sincronização.
+// Entram ANTES do script principal, que usa Nuvem.chaveDados() já no load().
+let nuvem = "";
+const SUPA = "node_modules/@supabase/supabase-js/dist/umd/supabase.js";
+if (fs.existsSync(SUPA) && fs.existsSync("divine_nuvem.js")) {
+  // O pacote UMD tenta descobrir de qual URL foi carregado e TRAVA quando está embutido
+  // no HTML (script sem "src"). Usamos o endereço da própria página como base: ele só
+  // seria usado para carregar um "fetch" alternativo, que navegadores atuais não precisam.
+  const TRAVA = 'if(!e)throw new Error("Automatic publicPath is not supported in this browser");';
+  let supa = fs.readFileSync(SUPA, "utf8");
+  if (!supa.includes(TRAVA)) throw new Error("supabase-js mudou: revise o ajuste de publicPath em build_editor.js");
+  supa = supa.replace(TRAVA, 'if(!e)e=(typeof location!=="undefined"?location.href:"./");');
+  nuvem = tag(supa) + "\n" + tag(fs.readFileSync("divine_nuvem.js", "utf8"));
+  console.log("nuvem (Supabase) embutida");
+}
+html = html.replace("<!--NUVEM-->", () => nuvem);
 html = html.replace("<!--EXPORT-->", () => tag(exp));
 
 // ---- animação de entrada (última coisa do <body>, conforme o guia) ----
