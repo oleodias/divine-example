@@ -65,6 +65,16 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
 - O build ajusta o `publicPath` do pacote UMD do supabase-js (ver `build_editor.js`).
 - `.github/workflows/supabase-ativo.yml` faz ping 2x/semana para o plano gratuito não pausar.
 
+## Auditoria (histórico)
+- Tabela `auditoria`, gravada **só pelo banco** (gatilhos `audita_projeto`/`audita_config` e a função
+  `registrar_evento`). A equipe só lê; ninguém edita/apaga pelo editor. Guardada para sempre.
+- Registra: criou, editou (com "de → para" por campo e por etapa), excluiu, restaurou, apagou de vez,
+  ciclo da capa, PowerPoint gerado, importação e motivo.
+- **Motivo obrigatório** ao pausar/cancelar no modo nuvem (sem motivo, o status volta ao anterior).
+- Eventos do editor ficam numa fila no `divine_nuvem_meta` (funciona offline) e são descartados ao
+  sair da conta, para nunca serem enviados no nome de outra pessoa.
+- Para valer, cada pessoa precisa usar o **próprio login**.
+
 ## Cuidados conhecidos
 - `#logoFallback` e `#wmFallback` precisam existir no HTML (usados por `aplicaLogo()`).
 - A caligrafia da animação usa proporção **3.1761** (WORD_AR) para pousar no pixel exato do `#logoTop`.
