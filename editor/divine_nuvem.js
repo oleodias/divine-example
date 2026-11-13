@@ -23,7 +23,8 @@
   const INTERVALO = 30000;                      // busca alterações da equipe a cada 30s
 
   let sb = null, usuario = null, nomeMembro = "";
-  let meta = { snap: {}, ciclo: null, ultimo: null, pronto: false };
+  let meta = { snap: {}, ciclo: null, ultimo: null, pronto: false, eventos: [] };
+  let etapasCache = {};   // projeto_id -> { quando, mapa: { etapa: "Concluída por X em …" } }
   let timer = null, rodando = false, denovo = false, formAtrasado = false;
   let agendado = false;   // há um envio esperando os 0,7s
   let saindo = false;     // aba escondida/fechando: envios pequenos usam keepalive
@@ -84,6 +85,7 @@
       area.innerHTML = `<div class="nstatus local"><i></i><span>Só neste computador</span></div>
         <button class="btn ghost sm" onclick="Nuvem.entrar()">Entrar na nuvem</button>`;
     } else area.innerHTML = "";
+    const bh = document.getElementById("btnHist"); if (bh) bh.hidden = !ativo();
   }
 
   /* ---------------- janelas (modal) ---------------- */
@@ -159,7 +161,7 @@
     setModo("nuvem");
     carregaMeta();
     if (vinhaDoLocal) {             // começa do zero: a cópia local da nuvem será montada pelo servidor
-      meta = { snap: {}, ciclo: null, ultimo: null, pronto: false };
+      meta = { snap: {}, ciclo: null, ultimo: null, pronto: false, eventos: [] };
       state = { ciclo: "", sel: 0, projects: [novoProjeto("Carregando…")] };
       render(true);
     }
@@ -180,7 +182,7 @@
     if (error) throw error;
     const cfg = await sb.from("config").select("ciclo").eq("id", 1).maybeSingle();
     if (cfg.error) throw cfg.error;
-    meta = { snap: {}, ciclo: null, ultimo: null, pronto: true };
+    meta = { snap: {}, ciclo: null, ultimo: null, pronto: true, eventos: (meta.eventos || []) };
     if (!data.length) {
       let local = null;
       try { local = JSON.parse(ls.get(K_LOCAL)); } catch (e) {}
@@ -246,6 +248,7 @@
     rodando = true; agendado = false;
     try {
       await enviar();
+      await enviarEventos();
       await receber();
       status("ok", "Salvo na nuvem");
     } catch (e) {
@@ -309,6 +312,7 @@
     }
     salvaLocal();
     renderQuem();
+    if (P() && P()._id && etapasCache[P()._id]) etapasCache[P()._id].quando = 0;
   }
 
   /* mesma edição em dois lugares: a versão da nuvem fica, a sua vira uma cópia (nada se perde) */
@@ -408,6 +412,127 @@
       }
     } else renderForm();
   }
+
+  /* ---------------- auditoria ---------------- */
+  // eventos do editor (PowerPoint, importação, motivo) entram numa fila que sobrevive
+  // a recarregar e a ficar offline; são enviados junto com a sincronização
+  function registrar(acao, projetoId, detalhe, mudancas) {
+    if (!ativo()) return;
+    (meta.eventos = meta.eventos || []).push({ acao, p: projetoId || null, d: detalhe || "", m: mudancas || [] });
+    salvaMeta(); agendar(300);
+  }
+  async function enviarEventos() {
+    while (meta.eventos && meta.eventos.length) {
+      const e = meta.eventos[0];
+      const { error } = await sb.rpc("registrar_evento", { p_acao: e.acao, p_projeto: e.p, p_detalhe: e.d, p_mudancas: e.m });
+      if (error) {
+        if (erroDeRede(error)) throw error;                                        // offline: tenta depois
+        if (/registrar_evento|schema cache|function/i.test(error.message || "")) return;  // banco sem auditoria ainda: aguarda na fila
+        console.warn("[Nuvem] evento descartado:", error);                        // erro permanente: não trava a fila
+      }
+      meta.eventos.shift(); salvaMeta();
+    }
+  }
+
+  /* motivo OBRIGATÓRIO ao pausar/cancelar: devolve o texto, ou "" se a pessoa desistir */
+  async function pedirMotivo(p, status) {
+    if (!ativo()) return "";
+    const verbo = status === "CANCELADO" ? "Cancelar" : "Pausar";
+    const ov = modal(`<h3>${verbo} “${esc(p.nome || "projeto")}”</h3>
+      <p class="nsub">Para ${verbo.toLowerCase()} um projeto, informe o motivo. Ele fica registrado no histórico.</p>
+      <label class="fl" for="nm_txt" style="margin-top:12px">Motivo <span class="nopc">(obrigatório)</span></label>
+      <textarea id="nm_txt" maxlength="1000" placeholder="Ex.: aguardando aprovação da diretoria; fornecedor indisponível…"></textarea>
+      <div class="nerro" id="nm_erro" role="alert"></div>
+      <div class="nbotoes"><button class="btn soft" id="nm_nao">Cancelar alteração</button>
+        <button class="btn primary" id="nm_ok" disabled>Confirmar</button></div>`, { fixo: true });
+    const txt = ov.querySelector("#nm_txt"), ok = ov.querySelector("#nm_ok");
+    setTimeout(() => txt.focus(), 40);
+    txt.addEventListener("input", () => { ok.disabled = txt.value.trim().length < 5; });
+    const motivo = await new Promise(res => {
+      ok.addEventListener("click", () => res(txt.value.trim()));
+      ov.querySelector("#nm_nao").addEventListener("click", () => res(""));
+      ov.addEventListener("keydown", e => { if (e.key === "Escape") res(""); });
+    });
+    fechaModal();
+    return motivo;
+  }
+  async function registrarMotivo(p, status, motivo) {
+    if (!ativo() || !motivo) return;
+    if (!p._id) { try { await sincronizar(); } catch (e) {} }   // projeto novo: precisa existir na nuvem antes
+    registrar("motivo", p._id || null, motivo, [{ campo: "Status geral", de: "", para: status }]);
+  }
+
+  const ACOES = {
+    criou: ["Criou o projeto", "a"], editou: ["Editou", "e"], excluiu: ["Enviou para a lixeira", "x"],
+    restaurou: ["Restaurou da lixeira", "a"], apagou: ["Apagou de vez", "x"], ciclo: ["Alterou o ciclo da reunião", "e"],
+    pptx: ["Gerou o PowerPoint", "p"], importou: ["Importou dados", "x"], motivo: ["Registrou um motivo", "m"],
+  };
+  function linhaHist(r) {
+    const [rot, cor] = ACOES[r.acao] || [r.acao, "e"];
+    const mud = (r.mudancas || []).map(m => `<li><b>${esc(m.campo)}:</b> ${m.de ? `<s>${esc(m.de)}</s> → ` : ""}${esc(m.para || "(vazio)")}</li>`).join("");
+    return `<div class="nh-it ${cor}"><div class="nh-dot"></div><div class="nh-txt">
+      <div class="nh-cab"><b>${esc(r.usuario_nome || "—")}</b> · ${rot}<span>${fmtQuando(r.em)}</span></div>
+      ${r.detalhe ? `<div class="nh-det">${r.acao === "motivo" ? "Motivo: " : ""}${esc(r.detalhe)}</div>` : ""}
+      ${mud ? `<ul>${mud}</ul>` : ""}</div></div>`;
+  }
+  async function historico() {
+    const p = P(); if (!ativo() || !p) return;
+    if (!p._id) { toast("Este projeto ainda está sendo enviado para a nuvem. Tente de novo em instantes."); return; }
+    const ov = modal(`<h3>Histórico</h3><p class="nsub">${esc(p.nome || "")} · registrado automaticamente pelo servidor; ninguém da equipe consegue alterar.</p>
+      <div class="nhist" id="nhist"><div class="nsub">Carregando…</div></div>
+      <div class="nbotoes"><button class="btn soft sm" id="nh_mais" hidden>Carregar mais</button><span style="flex:1"></span>
+        <button class="btn soft" onclick="Nuvem.fechar()">Fechar</button></div>`);
+    ov.querySelector(".nmodal").classList.add("larga");
+    const box = ov.querySelector("#nhist"), mais = ov.querySelector("#nh_mais");
+    let ate = null;
+    async function carrega() {
+      let q = sb.from("auditoria").select("em,usuario_nome,acao,mudancas,detalhe").eq("projeto_id", p._id).order("em", { ascending: false }).limit(50);
+      if (ate) q = q.lt("em", ate);
+      const { data, error } = await q;
+      if (error) {
+        box.innerHTML = `<div class="nerro">${erroDeRede(error) ? "Sem conexão com a nuvem." :
+          /auditoria|relation|schema cache/i.test(error.message) ? "O histórico ainda não foi ativado no banco: rode o script atualizado (supabase/schema.sql)." : esc(error.message)}</div>`;
+        return;
+      }
+      if (!ate) box.innerHTML = data.length ? "" : `<div class="nvazio">Nenhum registro ainda.</div>`;
+      box.insertAdjacentHTML("beforeend", data.map(linhaHist).join(""));
+      if (data.length) ate = data[data.length - 1].em;
+      mais.hidden = data.length < 50;
+    }
+    mais.addEventListener("click", carrega);
+    carrega();
+  }
+
+  /* "Concluída por Fulana em 03/11" ao passar o mouse na bolinha da etapa */
+  async function marcaEtapas(forcar) {
+    const p = typeof P === "function" && P();
+    if (!ativo() || !p || !p._id) return;
+    const c = etapasCache[p._id];
+    if (c && c.mapa) aplicaEtapas(c.mapa);
+    if (!forcar && c && Date.now() - c.quando < 30000) return;
+    etapasCache[p._id] = { quando: Date.now(), mapa: c ? c.mapa : {} };
+    try {
+      const { data, error } = await sb.from("auditoria").select("em,usuario_nome,mudancas")
+        .eq("projeto_id", p._id).eq("acao", "editou").order("em", { ascending: false }).limit(300);
+      if (error) return;
+      const mapa = {};
+      for (const r of data) for (const m of (r.mudancas || []))
+        if (m.tipo === "status" && m.etapa && !mapa[m.etapa])
+          mapa[m.etapa] = `${m.para.charAt(0).toUpperCase() + m.para.slice(1)} por ${r.usuario_nome || "—"} em ${fmtQuando(r.em)}`;
+      etapasCache[p._id] = { quando: Date.now(), mapa };
+      if (P() === p) aplicaEtapas(mapa);
+    } catch (e) {}
+  }
+  function aplicaEtapas(mapa) {
+    const p = P(); if (!p) return;
+    document.querySelectorAll("#etapas tr").forEach((tr, i) => {
+      const e = p.etapas[i], b = tr.querySelector(".stbtn");
+      if (!e || !b) return;
+      const info = mapa[e.n];
+      b.title = "Clique para mudar o status" + (info ? "\n" + info : "");
+    });
+  }
+
   function renderQuem() { const el = document.getElementById("f_quem"); if (el && typeof P === "function" && P()) el.textContent = quem(P()); }
   function quem(p) { return ativo() && p && p._por ? `Editado por ${p._por} em ${fmtQuando(p._em)}` : ""; }
 
@@ -520,7 +645,7 @@
     try { await sb.auth.signOut(); } catch (e) {}
     usuario = null; nomeMembro = ""; setModo(null);
     ls.del(K_CACHE); ls.del(K_META);
-    meta = { snap: {}, ciclo: null, ultimo: null, pronto: false };
+    meta = { snap: {}, ciclo: null, ultimo: null, pronto: false, eventos: [] };
     state = load(); render(true); pintaTopo();
     telaLogin();
   }
@@ -568,6 +693,7 @@
 
   window.Nuvem = {
     iniciar, ativo, agendar, quem, limpa, menu, conta, lixeira, sair,
+    registrar, pedirMotivo, registrarMotivo, historico, marcaEtapas,
     entrar: () => telaLogin(), fechar: fechaModal,
     sincronizarAgora: () => { fechaMenu(); status("sync", "Sincronizando…"); return sincronizar(); },
     chaveDados: () => (modo() === "nuvem" ? K_CACHE : K_LOCAL),
