@@ -107,7 +107,9 @@
 
   /* ---------------- login ---------------- */
   function telaLogin(msg) {
-    const logo = (window.DivineIntroAssets && DivineIntroAssets.WORD) || (window.DivineLogo && DivineLogo.WORDMARK) || "";
+    // logo oficial: a imagem da animação foi recortada para fundo escuro e, no cartão branco,
+    // a sombra cortada na borda inferior parecia uma logo cortada
+    const logo = (window.DivineLogo && DivineLogo.WORDMARK) || (window.DivineIntroAssets && DivineIntroAssets.WORD) || "";
     const ov = modal(`
       <form class="nlogin" onsubmit="return false">
         ${logo ? `<img src="${logo}" alt="Divine" class="nlogo">` : `<div class="nlogo-txt">Divine</div>`}
