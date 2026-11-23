@@ -63,7 +63,10 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
 - Modo "só neste computador" continua existindo (chave `divine_editor_v1`); o modo nuvem usa
   `divine_editor_nuvem_v1` como cópia offline.
 - O build ajusta o `publicPath` do pacote UMD do supabase-js (ver `build_editor.js`).
-- `.github/workflows/supabase-ativo.yml` faz ping 2x/semana para o plano gratuito não pausar.
+- `.github/workflows/supabase-ativo.yml` roda **todo dia** e faz uma **escrita real** (`public.manter_ativo()`)
+  para o plano gratuito não pausar. Em 11/2026 pausou com um ping 2x/semana que só lia a hora.
+  O GitHub desliga agendamentos após 60 dias sem commits no repositório: um ping externo
+  (ex.: cron-job.org chamando a mesma função) é a garantia extra.
 
 ## Auditoria (histórico)
 - Tabela `auditoria`, gravada **só pelo banco** (gatilhos `audita_projeto`/`audita_config` e a função
