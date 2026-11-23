@@ -32,6 +32,10 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
 - Sem acentos, espaços ou maiúsculas. Uma branch por assunto.
 - O GitHub apaga a branch automaticamente após o merge (opção ativada).
 
+### Sem atribuição (decisão do Leonardo)
+- **Nunca** incluir assinatura de ferramenta: nada de "Generated with Claude Code", link de sessão
+  (`claude.ai/code/session…`) ou `Co-Authored-By` em commits, PRs, releases ou qualquer texto do repositório.
+
 ### Pull Requests
 - Título no mesmo padrão dos commits.
 - Descrição com: **O que muda**, **Por quê** e **Impacto/segurança** (o que NÃO foi alterado).
