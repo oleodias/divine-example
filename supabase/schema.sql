@@ -305,3 +305,26 @@ create policy "auditoria: equipe le" on public.auditoria
 revoke all on function public.registrar_evento(text, uuid, text, jsonb) from public, anon;
 grant execute on function public.registrar_evento(text, uuid, text, jsonb) to authenticated;
 revoke all on function public.audita_projeto(), public.audita_config(), public.aud_nome() from public, anon, authenticated;
+
+-- =====================================================================
+-- 7) MANTER ATIVO — o plano gratuito pausa após ~7 dias sem uso.
+-- Só ler a hora (ping) não bastou: o projeto pausou mesmo com o ping
+-- rodando. Agora o agendamento faz uma ESCRITA real, todo dia, numa
+-- tabela própria (uma única linha com a data do último sinal de vida).
+-- =====================================================================
+create table if not exists public.manutencao (
+  id          int primary key default 1 check (id = 1),
+  ultimo_ping timestamptz not null default now(),
+  contador    bigint not null default 0
+);
+insert into public.manutencao (id) values (1) on conflict (id) do nothing;
+alter table public.manutencao enable row level security;
+revoke all on public.manutencao from anon, authenticated;
+
+create or replace function public.manter_ativo() returns timestamptz
+language sql volatile security definer set search_path = public as $$
+  update public.manutencao set ultimo_ping = now(), contador = contador + 1 where id = 1
+  returning ultimo_ping
+$$;
+revoke all on function public.manter_ativo() from public;
+grant execute on function public.manter_ativo() to anon, authenticated;
