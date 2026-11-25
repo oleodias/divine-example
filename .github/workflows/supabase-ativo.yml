@@ -13,8 +13,8 @@ jobs:
     steps:
       - name: Sinal de vida no Supabase
         env:
-          URL: https://osqibajvwoxzdugdwygn.supabase.co
-          KEY: sb_publishable_5UtARpzra6IMw6AwGPmL3A_zhqN6FzY
+          URL: https://xqxqbndgulcnyxgknyqb.supabase.co
+          KEY: sb_publishable_LbYW6LzYQoWvt5m8e_7G8A_5M8LbM5Z
         run: |
           set -u
           H=(-H "apikey: $KEY" -H "Content-Type: application/json")
