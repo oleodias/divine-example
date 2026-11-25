@@ -64,8 +64,14 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
   conflito vira cópia "(sua versão)". Excluir = lixeira (`excluido_em`); só some ao esvaziar.
 - Usuários: cadastro público desligado; o admin cria em Authentication → Users → Add user
   (Auto Confirm). Todo usuário criado vira membro (trigger `novo_membro`).
-- Modo "só neste computador" continua existindo (chave `divine_editor_v1`); o modo nuvem usa
-  `divine_editor_nuvem_v1` como cópia offline.
+- Modo "só neste computador" continua existindo (chave `divine_editor_v1` no localStorage).
+- Modo nuvem: a cópia offline fica no **IndexedDB** (banco `divine_nuvem`, registro `copia`), com o
+  portfólio (`state`) e a lista do que já foi enviado (`meta`) **gravados juntos, no mesmo registro**.
+  Nunca separe os dois: em 11/2026 o localStorage lotou (~5 MB com fotos), a cópia ficou velha enquanto
+  a lista avançava e, ao reabrir, o editor mandou 34 projetos para a lixeira (2 vezes).
+- A cópia antiga do localStorage (`divine_editor_nuvem_v1`/`divine_nuvem_meta`) é descartada ao abrir.
+- Projeto novo recebe o id no navegador (`_novo`) e é gravado na cópia ANTES do envio (evita duplicar).
+- Nunca testar contra o banco real com dados da equipe: use o Supabase simulado dos testes.
 - O build ajusta o `publicPath` do pacote UMD do supabase-js (ver `build_editor.js`).
 - `.github/workflows/supabase-ativo.yml` roda **todo dia** e faz uma **escrita real** (`public.manter_ativo()`)
   para o plano gratuito não pausar. Em 11/2026 pausou com um ping 2x/semana que só lia a hora.
