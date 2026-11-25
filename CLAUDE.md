@@ -36,6 +36,10 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
 - **Nunca** incluir assinatura de ferramenta: nada de "Generated with Claude Code", link de sessão
   (`claude.ai/code/session…`) ou `Co-Authored-By` em commits, PRs, releases ou qualquer texto do repositório.
 
+### README sempre atualizado (decisão do Leonardo)
+- **Toda** atualização do sistema atualiza também o `README.md` (funcionalidades, uso, estrutura,
+  prints se o visual mudar) — na mesma branch/PR da mudança.
+
 ### Pull Requests
 - Título no mesmo padrão dos commits.
 - Descrição com: **O que muda**, **Por quê** e **Impacto/segurança** (o que NÃO foi alterado).
@@ -50,6 +54,8 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
 - Dados no `localStorage` + exportar/importar JSON. `migrate()` precisa continuar idempotente.
 
 ## Ponto de retorno (combinado com o Leonardo)
+- A tag **`v2.1-estavel`** é a última versão com nuvem **funcionando** (antes da migração para São Paulo).
+  Se algo der errado numa mudança da nuvem, é para ela que se volta. Nunca apague.
 - A tag **`v1.2-estavel`** é a última versão SEM nuvem (GitHub Pages + localStorage + JSON). Nunca apague.
 - Se a nuvem der problema: (1) **Exportar dados** no editor; (2) reverter a PR da nuvem
   (botão *Revert* no GitHub); (3) **Importar dados** — o JSON é o mesmo formato da v1.2.
@@ -65,7 +71,10 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
 - Usuários: cadastro público desligado; o admin cria em Authentication → Users → Add user
   (Auto Confirm). Todo usuário criado vira membro (trigger `novo_membro`).
 - Modo "só neste computador" continua existindo (chave `divine_editor_v1` no localStorage).
-- Modo nuvem: a cópia offline fica no **IndexedDB** (banco `divine_nuvem`, registro `copia`), com o
+- Login (`divine_auth_<ref>`) e cópia local (`copia_<ref>`) são guardados **por projeto** Supabase (`<ref>` =
+  subdomínio da URL): trocar de projeto pede novo login e nunca mistura dados. Sessão recusada pelo servidor
+  (expirada/removida) → tela de login, preservando a cópia com o que não foi enviado.
+- Modo nuvem: a cópia offline fica no **IndexedDB** (banco `divine_nuvem`, registro `copia_<ref>`), com o
   portfólio (`state`) e a lista do que já foi enviado (`meta`) **gravados juntos, no mesmo registro**.
   Nunca separe os dois: em 11/2026 o localStorage lotou (~5 MB com fotos), a cópia ficou velha enquanto
   a lista avançava e, ao reabrir, o editor mandou 34 projetos para a lixeira (2 vezes).

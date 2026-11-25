@@ -55,7 +55,7 @@ e funciona até offline.
 | ⬇️ | **Gerar PowerPoint** | `.pptx` nativo, editável, com transições *fade* e entradas em cascata. Slides completos só dos projetos em andamento, mais um **resumo** dos pausados, finalizados e cancelados. |
 | ☁️ | **Nuvem da equipe** | Login com e-mail e senha; o portfólio é compartilhado e salvo automaticamente no Supabase, com aviso de edição simultânea e lixeira. |
 | 🧾 | **Histórico auditável** | Quem fez o quê e quando, com o "de → para" de cada campo, gravado pelo servidor e imutável. Motivo obrigatório ao pausar ou cancelar. |
-| 💾 | **Funciona offline** | Cópia local sempre salva; sincroniza ao reconectar. Modo "só neste computador" e **Exportar/Importar dados** (JSON) como backup. |
+| 💾 | **Funciona offline** | Cópia local no próprio navegador (IndexedDB, comporta centenas de MB com fotos); sincroniza ao reconectar. Modo "só neste computador" e **Exportar/Importar dados** (JSON) como backup. |
 | ✨ | **Animação de entrada** | A caligrafia "Divine" desenhada em dourado a cada acesso, com botão **Pular**. |
 | 📈 | **Progresso das etapas** | Barra em cada projeto da lista e selo **"X de Y concluídas"** no editor e no slide. |
 | ↩️ | **Desfazer** | Removeu uma etapa, foto ou projeto sem querer? O aviso traz o botão **Desfazer**. |
@@ -130,6 +130,15 @@ npm run build   # gera Editor_Divine.html e atualiza o ../index.html
 Ao publicar na `main`, o **GitHub Pages** atualiza o site automaticamente.
 As mudanças entram por *Pull Request* e cada versão estável recebe uma *tag*
 (ex.: [`v1.0-estavel`](../../releases)).
+
+### ☁️ Nuvem (Supabase)
+- Projeto Supabase na região **South America (São Paulo)**; endereço e chave **pública** em `editor/divine_nuvem.js`.
+- Banco, regras de segurança e auditoria: `supabase/schema.sql` (rodar no SQL Editor; pode rodar de novo).
+- Usuários: cadastro público desligado — o administrador cria em *Authentication → Users*.
+- Plano gratuito pausa após 7 dias sem uso: `.github/workflows/supabase-ativo.yml` (todo dia) e um
+  agendamento externo (cron-job.org) chamam `manter_ativo()`.
+- Login e cópia local são guardados **por projeto**: trocar de projeto Supabase pede um novo login, sem
+  misturar dados.
 
 ---
 
