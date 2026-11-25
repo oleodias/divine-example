@@ -13,9 +13,14 @@
 (function () {
   "use strict";
   const CFG = {
-    url: "https://osqibajvwoxzdugdwygn.supabase.co",
-    key: "sb_publishable_5UtARpzra6IMw6AwGPmL3A_zhqN6FzY",   // chave pública: a proteção está nas regras do banco
+    url: "https://xqxqbndgulcnyxgknyqb.supabase.co",
+    key: "sb_publishable_LbYW6LzYQoWvt5m8e_7G8A_5M8LbM5Z",   // chave pública: a proteção está nas regras do banco
   };
+  // login e cópia local são guardados POR PROJETO: ao trocar de projeto Supabase, nenhum navegador
+  // tenta usar a sessão ou a cópia do projeto anterior (cada pessoa entra de novo uma vez)
+  const REF = new URL(CFG.url).hostname.split(".")[0];
+  const K_AUTH = "divine_auth_" + REF;
+  const K_COPIA = "copia_" + REF;
   const K_MODO = "divine_modo";                 // "nuvem" | "local"
   // versão antiga da cópia local (localStorage, ~5 MB): lotava com as fotos e ficava
   // desencontrada da lista do que já foi enviado. É descartada ao atualizar.
@@ -92,7 +97,7 @@
     if (gravando) { regravar = true; return; }
     gravando = true;
     try {
-      await idb.put("copia", { v: 2, uid: usuario.id, em: Date.now(), state, meta });
+      await idb.put(K_COPIA, { v: 2, uid: usuario.id, em: Date.now(), state, meta });
       if (copiaFalhou) { copiaFalhou = false; console.info("[Nuvem] cópia local voltou a ser gravada"); }
     } catch (e) {
       if (!copiaFalhou) console.warn("[Nuvem] cópia local não gravada (os dados seguem na nuvem):", e);
@@ -110,8 +115,9 @@
   // lê a cópia deste usuário; sem cópia válida, começa vazio e busca tudo do servidor
   async function carregaCopia(uid) {
     ls.del(K_CACHE_ANTIGO); ls.del(K_META_ANTIGO);      // a cópia antiga não é confiável: descarta e libera espaço
+    try { await idb.del("copia"); } catch (e) {}        // cópia sem projeto no nome (versão anterior): descarta
     let r = null;
-    try { r = await idb.get("copia"); } catch (e) {}
+    try { r = await idb.get(K_COPIA); } catch (e) {}
     if (r && r.v === 2 && r.uid === uid && r.meta && r.state && r.state.projects && r.state.projects.length) {
       meta = Object.assign(metaVazia(), r.meta);
       state = r.state; migrate(state);
@@ -132,6 +138,19 @@
   function erroDeRede(e) {
     const m = String((e && (e.message || e)) || "");
     return !navigator.onLine || /fetch|network|Failed|timeout|abort/i.test(m);
+  }
+  // o servidor recusou o login (sessão expirada, usuário removido, projeto trocado)
+  function erroDeSessao(e) {
+    const c = String((e && e.code) || ""), m = String((e && (e.message || e)) || "");
+    return /^PGRST30[1-3]$/.test(c) || /JWT|invalid claim|not authenticated|token.*(expired|invalid)/i.test(m) || (e && e.status === 401);
+  }
+  async function sessaoExpirou() {
+    clearTimeout(timer); clearInterval(iniciaCiclo.t);
+    try { await gravaAgora(); } catch (e) {}                       // a cópia (com o que não foi enviado) fica guardada
+    try { await sb.auth.signOut({ scope: "local" }); } catch (e) {}
+    usuario = null; carregado = false; nomeMembro = "";
+    pintaTopo();
+    telaLogin("Sua sessão expirou. Entre de novo — o que não foi enviado continua guardado neste computador.");
   }
   function fmtQuando(iso) {
     if (!iso) return "";
@@ -244,7 +263,10 @@
     try {
       if (!meta.pronto) await primeiraCarga();
       await sincronizar();
-    } catch (e) { status("off", "Offline"); }
+    } catch (e) {
+      if (erroDeSessao(e)) return sessaoExpirou();
+      status("off", "Offline");
+    }
     iniciaCiclo();
   }
 
@@ -324,6 +346,7 @@
       await receber();
       status("ok", "Salvo na nuvem");
     } catch (e) {
+      if (erroDeSessao(e)) { rodando = false; return sessaoExpirou(); }
       status("off", erroDeRede(e) ? "Offline" : "Erro ao sincronizar");
       if (!erroDeRede(e)) console.warn("[Nuvem]", e);
       clearTimeout(timer); timer = setTimeout(sincronizar, 15000);   // tenta de novo sozinho
@@ -731,7 +754,7 @@
     clearInterval(iniciaCiclo.t);
     try { await sb.auth.signOut(); } catch (e) {}
     clearTimeout(tGrava);
-    try { await idb.del("copia"); } catch (e) {}
+    try { await idb.del(K_COPIA); } catch (e) {}
     usuario = null; nomeMembro = ""; setModo(null); carregado = false;
     meta = metaVazia();
     state = load(); render(true); pintaTopo();
@@ -742,7 +765,7 @@
   async function iniciar() {
     if (!window.supabase || !window.supabase.createClient) return;     // sem biblioteca: só modo local
     sb = window.supabase.createClient(CFG.url, CFG.key, {
-      auth: { persistSession: true, autoRefreshToken: true, storageKey: "divine_auth" },
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: K_AUTH },
       // ao fechar a aba, o navegador cancela envios normais; "keepalive" deixa terminar
       // (limite de ~64 KB por envio — projetos com fotos ficam cobertos pelo aviso abaixo)
       global: { fetch: (url, o) => {
@@ -765,6 +788,7 @@
       saindo = true; enviarAgora();
       e.preventDefault(); e.returnValue = "";
     });
+    ls.del("divine_auth");      // sessão salva sem o projeto no nome (versão anterior): descarta
     let sessao = null;
     try { sessao = (await sb.auth.getSession()).data.session; } catch (e) {}
     if (sessao && sessao.user) {
