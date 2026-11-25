@@ -1237,8 +1237,10 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     key: "sb_publishable_5UtARpzra6IMw6AwGPmL3A_zhqN6FzY",   // chave pública: a proteção está nas regras do banco
   };
   const K_MODO = "divine_modo";                 // "nuvem" | "local"
-  const K_CACHE = "divine_editor_nuvem_v1";     // cópia local do portfólio da equipe
-  const K_META = "divine_nuvem_meta";           // o que já foi sincronizado (sobrevive a recarregar offline)
+  // versão antiga da cópia local (localStorage, ~5 MB): lotava com as fotos e ficava
+  // desencontrada da lista do que já foi enviado. É descartada ao atualizar.
+  const K_CACHE_ANTIGO = "divine_editor_nuvem_v1";
+  const K_META_ANTIGO = "divine_nuvem_meta";
   const K_LOCAL = "divine_editor_v1";           // dados do modo "só neste computador"
   const INTERVALO = 30000;                      // busca alterações da equipe a cada 30s
 
@@ -1248,6 +1250,8 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
   let timer = null, rodando = false, denovo = false, formAtrasado = false;
   let agendado = false;   // há um envio esperando os 0,7s
   let saindo = false;     // aba escondida/fechando: envios pequenos usam keepalive
+  let carregado = false;  // a cópia local (IndexedDB) já foi lida nesta página
+  let tGrava = null, gravando = false, regravar = false, copiaFalhou = false;
 
   /* ---------------- utilidades ---------------- */
   const ls = {
@@ -1268,9 +1272,82 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
     return (h >>> 0).toString(36) + ":" + s.length;
   }
-  function salvaMeta() { ls.set(K_META, JSON.stringify(meta)); }
-  function carregaMeta() {
-    try { const m = JSON.parse(ls.get(K_META)); if (m && m.snap) meta = Object.assign(meta, m); } catch (e) {}
+  /* ---------------- cópia local (IndexedDB) ----------------
+   * O portfólio da equipe E a lista do que já foi enviado (meta) são gravados JUNTOS,
+   * num único registro: nunca ficam desencontrados. O IndexedDB comporta centenas de MB.
+   */
+  const idb = (() => {
+    let dbp = null;
+    function abre() {
+      if (!dbp) dbp = new Promise((res, rej) => {
+        if (!window.indexedDB) return rej(new Error("sem IndexedDB"));
+        const r = indexedDB.open("divine_nuvem", 1);
+        r.onupgradeneeded = () => r.result.createObjectStore("kv");
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      return dbp;
+    }
+    function tx(modoTx, fn) {
+      return abre().then(db => new Promise((res, rej) => {
+        const t = db.transaction("kv", modoTx), req = fn(t.objectStore("kv"));
+        t.oncomplete = () => res(req && req.result);
+        t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+      }));
+    }
+    return { get: k => tx("readonly", st => st.get(k)), put: (k, v) => tx("readwrite", st => st.put(v, k)), del: k => tx("readwrite", st => st.delete(k)) };
+  })();
+  function metaVazia() { return { snap: {}, ciclo: null, ultimo: null, pronto: false, eventos: [] }; }
+  function placeholder() { return { ciclo: "", sel: 0, projects: [novoProjeto("Carregando…")] }; }
+
+  // agenda a gravação da cópia (state + meta no mesmo registro)
+  function persistir(ms) {
+    if (!usuario || !carregado) return;
+    clearTimeout(tGrava);
+    tGrava = setTimeout(gravaCopia, ms == null ? 40 : ms);   // quase imediato; digitação rápida é agrupada
+  }
+  async function gravaCopia() {
+    clearTimeout(tGrava);
+    if (!usuario || !carregado) return;
+    if (gravando) { regravar = true; return; }
+    gravando = true;
+    try {
+      await idb.put("copia", { v: 2, uid: usuario.id, em: Date.now(), state, meta });
+      if (copiaFalhou) { copiaFalhou = false; console.info("[Nuvem] cópia local voltou a ser gravada"); }
+    } catch (e) {
+      if (!copiaFalhou) console.warn("[Nuvem] cópia local não gravada (os dados seguem na nuvem):", e);
+      copiaFalhou = true;   // a última cópia gravada continua coerente: é segura para reabrir
+    } finally {
+      gravando = false;
+      if (regravar) { regravar = false; gravaCopia(); }
+    }
+  }
+  async function gravaAgora() {
+    clearTimeout(tGrava);
+    while (gravando) await new Promise(r => setTimeout(r, 15));
+    await gravaCopia();
+  }
+  // lê a cópia deste usuário; sem cópia válida, começa vazio e busca tudo do servidor
+  async function carregaCopia(uid) {
+    ls.del(K_CACHE_ANTIGO); ls.del(K_META_ANTIGO);      // a cópia antiga não é confiável: descarta e libera espaço
+    let r = null;
+    try { r = await idb.get("copia"); } catch (e) {}
+    if (r && r.v === 2 && r.uid === uid && r.meta && r.state && r.state.projects && r.state.projects.length) {
+      meta = Object.assign(metaVazia(), r.meta);
+      state = r.state; migrate(state);
+      if (!(state.sel >= 0 && state.sel < state.projects.length)) state.sel = 0;
+    } else {
+      meta = metaVazia();
+      state = placeholder();
+    }
+    carregado = true;
+    render(true);
+  }
+  function uuid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
+    });
   }
   function erroDeRede(e) {
     const m = String((e && (e.message || e)) || "");
@@ -1379,19 +1456,13 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
   }
 
   async function aposLogin() {
-    const vinhaDoLocal = modo() !== "nuvem";
     setModo("nuvem");
-    carregaMeta();
-    if (vinhaDoLocal) {             // começa do zero: a cópia local da nuvem será montada pelo servidor
-      meta = { snap: {}, ciclo: null, ultimo: null, pronto: false, eventos: [] };
-      state = { ciclo: "", sel: 0, projects: [novoProjeto("Carregando…")] };
-      render(true);
-    }
+    if (!carregado) await carregaCopia(usuario.id);
     await carregaNome();
     pintaTopo();
     status("sync", "Sincronizando…");
     try {
-      if (!meta.pronto) await primeiraCarga(vinhaDoLocal);
+      if (!meta.pronto) await primeiraCarga();
       await sincronizar();
     } catch (e) { status("off", "Offline"); }
     iniciaCiclo();
@@ -1427,7 +1498,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
       meta.ciclo = state.ciclo;
       meta.ultimo = maxData(data);
     }
-    salvaLocal(); salvaMeta(); render(true);
+    persistir(); render(true);
   }
 
   function linhaParaProjeto(r) {
@@ -1436,23 +1507,22 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     return p;
   }
   function maxData(rows) { return rows.reduce((m, r) => (!m || r.atualizado_em > m ? r.atualizado_em : m), meta.ultimo); }
-  function salvaLocal() { ls.set(K_CACHE, JSON.stringify(state)); }
 
   /* ---------------- sincronização ---------------- */
   function agendar(ms) {
-    if (!ativo() || !meta.pronto) return;
+    if (!ativo() || !carregado || !meta.pronto) return;
     clearTimeout(timer); agendado = true;
     timer = setTimeout(sincronizar, ms == null ? 700 : ms);
     status("sync", "Salvando…");
   }
   /* envia já, sem esperar os 0,7s (ao trocar de aba, minimizar ou fechar) */
   function enviarAgora() {
-    if (!ativo() || !meta.pronto || !(agendado || rodando || temPendencia())) return;
+    if (!ativo() || !carregado || !meta.pronto || !(agendado || rodando || temPendencia())) return;
     clearTimeout(timer); sincronizar();
   }
   /* há algo no computador que a nuvem ainda não recebeu? */
   function temPendencia() {
-    if (!ativo() || !meta.pronto) return false;
+    if (!ativo() || !carregado || !meta.pronto) return false;
     if (agendado || rodando) return true;
     if ((state.ciclo || "") !== (meta.ciclo || "")) return true;
     const ids = new Set();
@@ -1465,7 +1535,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     return Object.keys(meta.snap).some(id => !ids.has(id));
   }
   async function sincronizar() {
-    if (!ativo() || !meta.pronto) return;
+    if (!ativo() || !carregado || !meta.pronto) return;
     if (rodando) { denovo = true; return; }
     rodando = true; agendado = false;
     try {
@@ -1489,12 +1559,27 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     for (let i = 0; i < lista.length; i++) {
       const p = lista[i];
       if (!p._id) {                                            // projeto novo
-        const { data, error } = await sb.from("projetos").insert({ dados: limpa(p), ordem: i })
+        // o id é criado aqui e gravado na cópia ANTES do envio: se a página fechar no meio,
+        // ao reabrir o editor reconhece o projeto já criado em vez de criá-lo de novo
+        if (!p._novo) { p._novo = uuid(); await gravaAgora(); }
+        const { data, error } = await sb.from("projetos").insert({ id: p._novo, dados: limpa(p), ordem: i })
           .select("id,versao,atualizado_em,atualizado_por_nome").single();
+        if (error && error.code === "23505") {                 // já tinha sido criado: adota o registro do servidor
+          const ja = await sb.from("projetos").select("id,versao,ordem,dados,atualizado_em,atualizado_por_nome").eq("id", p._novo).maybeSingle();
+          if (ja.error) throw ja.error;
+          if (ja.data) {
+            Object.assign(p, { _id: ja.data.id, _versao: ja.data.versao, _por: ja.data.atualizado_por_nome, _em: ja.data.atualizado_em });
+            delete p._novo;
+            meta.snap[ja.data.id] = { h: hash(ja.data.dados), o: ja.data.ordem, v: ja.data.versao };
+            ids.add(ja.data.id); persistir(); denovo = true;   // se o conteúdo local for mais novo, o próximo ciclo envia
+            continue;
+          }
+        }
         if (error) throw error;
+        delete p._novo;
         Object.assign(p, { _id: data.id, _versao: data.versao, _por: data.atualizado_por_nome, _em: data.atualizado_em });
         meta.snap[data.id] = { h: hash(p), o: i, v: data.versao };
-        ids.add(data.id); salvaMeta(); salvaLocal();
+        ids.add(data.id); persistir();
         continue;
       }
       ids.add(p._id);
@@ -1519,20 +1604,20 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
         if (error) throw error;
         s.o = i;
       }
-      salvaMeta();
+      persistir();
     }
     for (const id of Object.keys(meta.snap)) {                 // removidos → lixeira
       if (ids.has(id)) continue;
       const { error } = await sb.from("projetos").update({ excluido_em: new Date().toISOString() }).eq("id", id);
       if (error) throw error;
-      delete meta.snap[id]; salvaMeta();
+      delete meta.snap[id]; persistir();
     }
     if ((state.ciclo || "") !== (meta.ciclo || "")) {
       const { error } = await sb.from("config").update({ ciclo: state.ciclo || "" }).eq("id", 1);
       if (error) throw error;
-      meta.ciclo = state.ciclo || ""; salvaMeta();
+      meta.ciclo = state.ciclo || ""; persistir();
     }
-    salvaLocal();
+    persistir();
     renderQuem();
     if (P() && P()._id && etapasCache[P()._id]) etapasCache[P()._id].quando = 0;
   }
@@ -1547,7 +1632,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     if (data && !data.excluido_em && hash(linhaParaProjeto(data)) === hash(p)) {
       Object.assign(p, { _versao: data.versao, _por: data.atualizado_por_nome, _em: data.atualizado_em });
       meta.snap[data.id] = { h: hash(p), o: data.ordem, v: data.versao };
-      salvaMeta(); salvaLocal();
+      persistir();
       return;
     }
     const minha = limpa(p);
@@ -1562,7 +1647,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
       state.projects.splice(idx, 1, minha);
       delete meta.snap[p._id];
     }
-    salvaMeta(); salvaLocal(); render(false); agendar(200);
+    persistir(); render(false); agendar(200);
   }
 
   async function receber() {
@@ -1610,10 +1695,10 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     if (mudouLista || mudouSel) {
       const j = state.projects.findIndex(p => p._id === selId);
       state.sel = j >= 0 ? j : Math.min(state.sel, state.projects.length - 1);
-      salvaLocal();
+      persistir();
       render(mudouSel || j < 0);
     }
-    salvaMeta();
+    persistir();
   }
 
   /* re-desenha sem atrapalhar quem está digitando */
@@ -1641,7 +1726,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
   function registrar(acao, projetoId, detalhe, mudancas) {
     if (!ativo()) return;
     (meta.eventos = meta.eventos || []).push({ acao, p: projetoId || null, d: detalhe || "", m: mudancas || [] });
-    salvaMeta(); agendar(300);
+    persistir(); agendar(300);
   }
   async function enviarEventos() {
     while (meta.eventos && meta.eventos.length) {
@@ -1652,7 +1737,7 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
         if (/registrar_evento|schema cache|function/i.test(error.message || "")) return;  // banco sem auditoria ainda: aguarda na fila
         console.warn("[Nuvem] evento descartado:", error);                        // erro permanente: não trava a fila
       }
-      meta.eventos.shift(); salvaMeta();
+      meta.eventos.shift(); persistir();
     }
   }
 
@@ -1865,9 +1950,10 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     try { await sincronizar(); } catch (e) {}
     clearInterval(iniciaCiclo.t);
     try { await sb.auth.signOut(); } catch (e) {}
-    usuario = null; nomeMembro = ""; setModo(null);
-    ls.del(K_CACHE); ls.del(K_META);
-    meta = { snap: {}, ciclo: null, ultimo: null, pronto: false, eventos: [] };
+    clearTimeout(tGrava);
+    try { await idb.del("copia"); } catch (e) {}
+    usuario = null; nomeMembro = ""; setModo(null); carregado = false;
+    meta = metaVazia();
     state = load(); render(true); pintaTopo();
     telaLogin();
   }
@@ -1888,10 +1974,10 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     window.addEventListener("online", () => sincronizar());
     window.addEventListener("focus", () => sincronizar());
     document.addEventListener("visibilitychange", () => {
-      if (document.hidden) { saindo = true; enviarAgora(); }       // trocou de aba / minimizou / vai fechar
+      if (document.hidden) { saindo = true; gravaAgora(); enviarAgora(); }   // trocou de aba / minimizou / vai fechar
       else { saindo = false; sincronizar(); }
     });
-    window.addEventListener("pagehide", () => { saindo = true; enviarAgora(); });
+    window.addEventListener("pagehide", () => { saindo = true; gravaAgora(); enviarAgora(); });
     // aviso padrão do navegador SÓ se há algo não enviado e há internet
     // (offline, esperar não adianta: os dados já estão salvos neste computador)
     window.addEventListener("beforeunload", e => {
@@ -1903,9 +1989,9 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     try { sessao = (await sb.auth.getSession()).data.session; } catch (e) {}
     if (sessao && sessao.user) {
       usuario = sessao.user;
-      carregaMeta();
       if (modo() !== "nuvem") setModo("nuvem");
       pintaTopo();
+      await carregaCopia(usuario.id);
       return aposLogin();
     }
     pintaTopo();
@@ -1918,7 +2004,10 @@ FULL:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+gAAAHUCAMAAACeWvIpAAADAFBM
     registrar, pedirMotivo, registrarMotivo, historico, marcaEtapas,
     entrar: () => telaLogin(), fechar: fechaModal,
     sincronizarAgora: () => { fechaMenu(); status("sync", "Sincronizando…"); return sincronizar(); },
-    chaveDados: () => (modo() === "nuvem" ? K_CACHE : K_LOCAL),
+    // modo nuvem: a cópia local fica no IndexedDB (ver carregaCopia/persistir)
+    usaNuvem: () => modo() === "nuvem",
+    persistir: () => persistir(),
+    chaveDados: () => K_LOCAL,
   };
 })();
 </script>
@@ -2008,10 +2097,16 @@ function migrate(s) {
 // modo "só neste computador" usa KEY (como sempre); modo nuvem usa uma cópia local separada
 function chaveDados() { return window.Nuvem ? Nuvem.chaveDados() : KEY; }
 function load() {
+  // modo nuvem: a cópia local fica no IndexedDB e é lida pelo módulo da nuvem
+  if (window.Nuvem && Nuvem.usaNuvem()) return { ciclo: "", sel: 0, projects: [novoProjeto("Carregando…")] };
   try { const s = JSON.parse(localStorage.getItem(chaveDados())); if (s && s.projects && s.projects.length) return migrate(s); } catch (e) {}
   return JSON.parse(JSON.stringify(DEFAULT));
 }
 function save() {
+  if (window.Nuvem && Nuvem.usaNuvem()) {          // modo nuvem: cópia no IndexedDB + envio
+    if (Nuvem.ativo()) { Nuvem.persistir(); Nuvem.agendar(); }
+    return;
+  }
   try { localStorage.setItem(chaveDados(), JSON.stringify(state)); } catch (e) {
     toast("Atenção: não consegui salvar (imagens muito grandes?). Exporte os dados como backup."); }
   if (window.Nuvem && Nuvem.ativo()) Nuvem.agendar();
