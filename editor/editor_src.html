@@ -636,10 +636,16 @@ function migrate(s) {
 // modo "só neste computador" usa KEY (como sempre); modo nuvem usa uma cópia local separada
 function chaveDados() { return window.Nuvem ? Nuvem.chaveDados() : KEY; }
 function load() {
+  // modo nuvem: a cópia local fica no IndexedDB e é lida pelo módulo da nuvem
+  if (window.Nuvem && Nuvem.usaNuvem()) return { ciclo: "", sel: 0, projects: [novoProjeto("Carregando…")] };
   try { const s = JSON.parse(localStorage.getItem(chaveDados())); if (s && s.projects && s.projects.length) return migrate(s); } catch (e) {}
   return JSON.parse(JSON.stringify(DEFAULT));
 }
 function save() {
+  if (window.Nuvem && Nuvem.usaNuvem()) {          // modo nuvem: cópia no IndexedDB + envio
+    if (Nuvem.ativo()) { Nuvem.persistir(); Nuvem.agendar(); }
+    return;
+  }
   try { localStorage.setItem(chaveDados(), JSON.stringify(state)); } catch (e) {
     toast("Atenção: não consegui salvar (imagens muito grandes?). Exporte os dados como backup."); }
   if (window.Nuvem && Nuvem.ativo()) Nuvem.agendar();
