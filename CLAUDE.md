@@ -63,7 +63,9 @@ Formato: `<tipo>(<escopo opcional>): <descrição>`
   e são removidos na exportação, na duplicação e na importação.
 
 ## Nuvem (Supabase)
-- Projeto `divine-pd` (São Paulo). URL e chave **publicável** ficam em `editor/divine_nuvem.js`.
+- Projeto `xqxqbndgulcnyxgknyqb` (**São Paulo**, desde 11/2026). URL e chave **publicável** ficam em
+  `editor/divine_nuvem.js` e em `.github/workflows/supabase-ativo.yml` (e no cron-job.org).
+- Projeto antigo `osqibajvwoxzdugdwygn` (EUA, `divine-pd`): só backup após a migração; não usar.
   A chave secreta/service_role **nunca** entra no código.
 - Esquema e regras de segurança: `supabase/schema.sql` (idempotente; rodar no SQL Editor).
 - Portfólio da **equipe**: um registro por projeto, `versao` evita sobrescrever edição alheia;
